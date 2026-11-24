@@ -1,7 +1,6 @@
 (() => {
   'use strict';
 
-  // Bersihkan sisa override manual lama agar Platinum murni mengikuti feed OTA
   localStorage.removeItem('bpn_manual_platinum_rates');
 
   const defaultTrackedHotels = [
@@ -28,7 +27,6 @@
     { id: 'whiz', group: 'EXTENDED', fallbackRate: 360000, name: 'Whiz Prime Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false }
   ];
 
-  const MAX_STANDARD_ROOM_RATE = 3500000;
   const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
   const apiEndpoint = window.location.protocol.startsWith('http') ? '/api/live-rates' : '';
 
@@ -113,19 +111,20 @@
       if (d === currentCheckin) continue;
       const found = (dateSnapshots[d] || []).find((x) => {
         const r = Number(x.lowest_rate);
-        return x.id === hotelId && !x.is_estimated && r > 100000 && r <= MAX_STANDARD_ROOM_RATE;
+        return x.id === hotelId && !x.is_estimated && r >= 50000;
       });
       if (found) return Number(found.lowest_rate);
     }
     return 0;
   }
 
+  // Tanpa batasan atas harga (No cap) dan tanpa pengali OTA sintetis
   function normalizeZeroSoldOut(hotels, checkin) {
     const sourceList = Array.isArray(hotels) && hotels.length > 0 ? hotels : defaultTrackedHotels;
 
     const validRates = sourceList
       .map((h) => Number(h.lowest_rate))
-      .filter((n) => n > 100000 && n <= MAX_STANDARD_ROOM_RATE);
+      .filter((n) => n >= 50000);
 
     const avgFallback = validRates.length > 0
       ? Math.round(validRates.reduce((a, b) => a + b, 0) / validRates.length / 5000) * 5000
@@ -135,37 +134,33 @@
       let rate = Number(h.lowest_rate) || 0;
       let isEst = Boolean(h.is_estimated);
 
-      if (rate <= 100000 || rate > MAX_STANDARD_ROOM_RATE) {
+      if (rate < 50000) {
         const prevLiveRate = findPreviousKnownLiveRate(h.id, checkin);
         rate = prevLiveRate > 0 ? prevLiveRate : (Number(h.fallbackRate) || avgFallback);
         isEst = true;
       }
 
-      const cleanOta = (val, mult) => {
-        const n = Number(val) || 0;
-        if (n > 100000 && n <= MAX_STANDARD_ROOM_RATE && n <= rate * 1.6) return n;
-        return Math.round((rate * mult) / 1000) * 1000;
+      const ota = h.ota_breakdown || {};
+      const realOtaVal = (v) => {
+        const n = Number(v) || 0;
+        return n >= 50000 ? Math.round(n) : 0;
       };
 
-      const ota = h.ota_breakdown || {};
       const filteredAllOta = Array.isArray(h.all_ota_rates)
-        ? h.all_ota_rates.filter((x) => {
-            const val = Number(x.rate);
-            return val > 100000 && val <= MAX_STANDARD_ROOM_RATE && val <= rate * 1.6;
-          })
+        ? h.all_ota_rates.filter((x) => Number(x.rate) >= 50000)
         : [];
 
       return {
         ...h,
         status: 'AVAILABLE',
         is_estimated: isEst,
-        lowest_rate: rate,
+        lowest_rate: Math.round(rate),
         all_ota_rates: filteredAllOta,
         ota_breakdown: {
-          traveloka: cleanOta(ota.traveloka, 1.00),
-          tiket: cleanOta(ota.tiket, 1.01),
-          agoda: cleanOta(ota.agoda, 1.02),
-          booking: cleanOta(ota.booking, 1.04)
+          traveloka: realOtaVal(ota.traveloka),
+          tiket: realOtaVal(ota.tiket),
+          agoda: realOtaVal(ota.agoda),
+          booking: realOtaVal(ota.booking)
         }
       };
     });
@@ -281,9 +276,7 @@
           renderActiveView();
         }
       }
-    } catch {
-      // Tetap gunakan cache lokal jika koneksi tertunda
-    }
+    } catch {}
   }
 
   async function fetchLiveRates(targetDate = null, silent = false) {
@@ -403,7 +396,7 @@
             ${groupTag}
             <span class="font-bold text-slate-800">${h.name}</span>
           </div>
-          <span class="block text-[11px] text-slate-500 mt-0.5">${h.area}</span>
+          <span class="block text-[11px] text-slate-500 mt-0.5">${h.area}${h.lowest_source ? ` • ${h.lowest_source}` : ''}</span>
           ${otaList ? `<div class="flex flex-wrap gap-1 mt-1.5">${otaList}</div>` : ''}
         </td>
         <td class="py-3 px-2.5 text-center border-r border-slate-200">${statusBadge}</td>
@@ -439,7 +432,7 @@
       tr.className = base.isOwn ? 'bg-amber-50/60' : 'bg-white';
       const cells = dates.map((d) => {
         const snap = (dateSnapshots[d] || []).find((x) => x.id === base.id);
-        const rate = Number(snap?.lowest_rate) > 0 && Number(snap.lowest_rate) <= MAX_STANDARD_ROOM_RATE
+        const rate = Number(snap?.lowest_rate) >= 50000
           ? Number(snap.lowest_rate)
           : (Number(base.lowest_rate) || Number(base.fallbackRate) || 650000);
         return `<td class="py-2.5 px-2.5 text-center mono font-semibold text-slate-800 border-r border-slate-200">${formatNum(rate)}</td>`;
@@ -541,23 +534,19 @@
       });
     }
 
-    const otaSums = { traveloka: 0, tiket: 0, agoda: 0, booking: 0, counts: 0 };
+    const otaSums = { traveloka: 0, tiket: 0, agoda: 0, booking: 0, cTrav: 0, cTiket: 0, cAgoda: 0, cBook: 0 };
     m.scoped.forEach((h) => {
       const o = h.ota_breakdown || {};
-      if (Number(o.traveloka) > 0 || Number(o.tiket) > 0 || Number(o.agoda) > 0 || Number(o.booking) > 0) {
-        otaSums.traveloka += Number(o.traveloka) || 0;
-        otaSums.tiket += Number(o.tiket) || 0;
-        otaSums.agoda += Number(o.agoda) || 0;
-        otaSums.booking += Number(o.booking) || 0;
-        otaSums.counts += 1;
-      }
+      if (Number(o.traveloka) > 0) { otaSums.traveloka += Number(o.traveloka); otaSums.cTrav += 1; }
+      if (Number(o.tiket) > 0) { otaSums.tiket += Number(o.tiket); otaSums.cTiket += 1; }
+      if (Number(o.agoda) > 0) { otaSums.agoda += Number(o.agoda); otaSums.cAgoda += 1; }
+      if (Number(o.booking) > 0) { otaSums.booking += Number(o.booking); otaSums.cBook += 1; }
     });
-    const div = otaSums.counts || 1;
     const otaAvgs = [
-      Math.round(otaSums.traveloka / div),
-      Math.round(otaSums.tiket / div),
-      Math.round(otaSums.agoda / div),
-      Math.round(otaSums.booking / div)
+      otaSums.cTrav ? Math.round(otaSums.traveloka / otaSums.cTrav) : 0,
+      otaSums.cTiket ? Math.round(otaSums.tiket / otaSums.cTiket) : 0,
+      otaSums.cAgoda ? Math.round(otaSums.agoda / otaSums.cAgoda) : 0,
+      otaSums.cBook ? Math.round(otaSums.booking / otaSums.cBook) : 0
     ];
 
     const otaCanvas = document.getElementById('otaChannelChart');
@@ -568,7 +557,7 @@
         data: {
           labels: ['Traveloka', 'Tiket.com', 'Agoda', 'Booking.com'],
           datasets: [{
-            label: 'Average OTA Rate (IDR)',
+            label: 'Average Real OTA Rate (IDR)',
             data: otaAvgs,
             backgroundColor: ['#00669E', '#1B85B8', '#F5B81C', '#059669'],
             borderRadius: 8
@@ -622,7 +611,6 @@
     renderHistoryView();
   }
 
-  // Expose handlers globally for inline HTML attributes
   window.toggleDescriptionPanel = () => {
     const box = document.getElementById('dashboardDescriptionBox');
     const txt = document.getElementById('descToggleText');
