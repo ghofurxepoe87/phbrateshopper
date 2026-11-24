@@ -11,283 +11,69 @@ export default async function handler(req, res) {
   const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
 
   const tracked = [
-    // Properti Utama
-    {
-      id: 'platinum',
-      group: 'CORE',
-      searchQuery: 'Platinum Hotel & Convention Hall Balikpapan',
-      matchKeys: ['platinum'],
-      name: 'Platinum Hotel & Convention Hall Balikpapan',
-      area: 'Jl. Soekarno Hatta, Balikpapan',
-      isOwn: true
-    },
-    // Grup Utama (Atas SUB TOTAL)
-    {
-      id: 'bluesky',
-      group: 'CORE',
-      searchQuery: 'Blue Sky Hotel Balikpapan',
-      matchKeys: ['blue sky'],
-      name: 'Blue Sky Hotel Balikpapan',
-      area: 'Kebun Sayur, Balikpapan',
-      isOwn: false
-    },
-    {
-      id: 'swissbel_balcony',
-      group: 'CORE',
-      searchQuery: 'Swiss-Belhotel Balikpapan',
-      matchKeys: ['swiss-belhotel', 'swiss belhotel'],
-      name: 'Swiss-Belhotel Balikpapan',
-      area: 'Balikpapan Ocean Square (BOS)',
-      isOwn: false
-    },
-    {
-      id: 'novotel',
-      group: 'CORE',
-      searchQuery: 'Novotel Balikpapan',
-      matchKeys: ['novotel'],
-      name: 'Novotel Balikpapan',
-      area: 'Jl. Brigjen Ery Suparjan',
-      isOwn: false
-    },
-    {
-      id: 'grand_jatra',
-      group: 'CORE',
-      searchQuery: 'Grand Jatra Hotel Balikpapan',
-      matchKeys: ['grand jatra', 'jatra'],
-      name: 'Grand Jatra Hotel Balikpapan',
-      area: 'e-Walk / Balikpapan SuperBlock',
-      isOwn: false
-    },
-    {
-      id: 'grand_tjokro',
-      group: 'CORE',
-      searchQuery: 'Grand Tjokro Balikpapan',
-      matchKeys: ['grand tjokro', 'tjokro'],
-      name: 'Grand Tjokro Balikpapan',
-      area: 'Jl. Marsma R. Iswahyudi',
-      isOwn: false
-    },
-    {
-      id: 'astara',
-      group: 'CORE',
-      searchQuery: 'Astara Hotel Balikpapan',
-      matchKeys: ['astara'],
-      name: 'Astara Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    // Grup Lanjutan (Bawah SUB TOTAL)
-    {
-      id: 'gran_senyiur',
-      group: 'EXTENDED',
-      searchQuery: 'Gran Senyiur Balikpapan',
-      matchKeys: ['gran senyiur', 'senyiur'],
-      name: 'Gran Senyiur Balikpapan',
-      area: 'Jl. ARS Moh. No. 1-7',
-      isOwn: false
-    },
-    {
-      id: 'horison_ultima',
-      group: 'EXTENDED',
-      searchQuery: 'Horison Ultima Benua Balikpapan',
-      matchKeys: ['horison ultima', 'horison'],
-      name: 'Horison Ultima Benua Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'penta_city',
-      group: 'EXTENDED',
-      searchQuery: 'Penta City Hotel Balikpapan',
-      matchKeys: ['penta city', 'penta'],
-      name: 'Penta City Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'golden_tulip',
-      group: 'EXTENDED',
-      searchQuery: 'Golden Tulip Balikpapan Hotel & Suites',
-      matchKeys: ['golden tulip'],
-      name: 'Golden Tulip Balikpapan Hotel & Suites',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'dprima',
-      group: 'EXTENDED',
-      searchQuery: "D'Prima Hotel Balikpapan",
-      matchKeys: ['d prima', 'dprima', 'd’prima', 'prima city'],
-      name: "D'Prima Hotel Balikpapan",
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'pacific',
-      group: 'EXTENDED',
-      searchQuery: 'Pacific Hotel Balikpapan',
-      matchKeys: ['pacific'],
-      name: 'Pacific Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'sagita',
-      group: 'EXTENDED',
-      searchQuery: 'Sagita Hotel Balikpapan',
-      matchKeys: ['sagita'],
-      name: 'Sagita Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'ibis',
-      group: 'EXTENDED',
-      searchQuery: 'ibis Balikpapan',
-      matchKeys: ['ibis balikpapan', 'ibis'],
-      name: 'ibis Balikpapan',
-      area: 'Jl. Brigjen Ery Suparjan',
-      isOwn: false
-    },
-    {
-      id: 'quest',
-      group: 'EXTENDED',
-      searchQuery: 'Quest Hotel Balikpapan',
-      matchKeys: ['quest hotel', 'quest'],
-      name: 'Quest Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'neo_plus',
-      group: 'EXTENDED',
-      searchQuery: 'Hotel NEO+ Balikpapan',
-      matchKeys: ['neo+', 'neo plus', 'hotel neo'],
-      name: 'Hotel NEO+ Balikpapan',
-      area: 'Jl. Podomoro / MT Haryono',
-      isOwn: false
-    },
-    {
-      id: 'zurich',
-      group: 'EXTENDED',
-      searchQuery: 'Zurich Hotel Balikpapan',
-      matchKeys: ['zurich'],
-      name: 'Zurich Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'swissbel_inn',
-      group: 'EXTENDED',
-      searchQuery: 'Swiss-Belinn Balikpapan',
-      matchKeys: ['swiss-belinn', 'swiss belinn'],
-      name: 'Swiss-Belinn Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'max_one',
-      group: 'EXTENDED',
-      searchQuery: 'MaxOneHotels at Balikpapan',
-      matchKeys: ['maxone', 'max one'],
-      name: 'MaxOneHotels at Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    },
-    {
-      id: 'whiz',
-      group: 'EXTENDED',
-      searchQuery: 'Whiz Prime Hotel Balikpapan',
-      matchKeys: ['whiz prime', 'whiz hotel', 'whiz'],
-      name: 'Whiz Prime Hotel Balikpapan',
-      area: 'Jl. Jenderal Sudirman',
-      isOwn: false
-    }
+    { id: 'platinum', group: 'CORE', matchKeys: ['platinum'], name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta, Balikpapan', isOwn: true },
+    { id: 'bluesky', group: 'CORE', matchKeys: ['blue sky'], name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur, Balikpapan', isOwn: false },
+    { id: 'swissbel_balcony', group: 'CORE', matchKeys: ['swiss-belhotel', 'swiss belhotel'], name: 'Swiss-Belhotel Balikpapan', area: 'Balikpapan Ocean Square (BOS)', isOwn: false },
+    { id: 'novotel', group: 'CORE', matchKeys: ['novotel'], name: 'Novotel Balikpapan', area: 'Jl. Brigjen Ery Suparjan', isOwn: false },
+    { id: 'grand_jatra', group: 'CORE', matchKeys: ['jatra'], name: 'Grand Jatra Hotel Balikpapan', area: 'e-Walk / Balikpapan SuperBlock', isOwn: false },
+    { id: 'grand_tjokro', group: 'CORE', matchKeys: ['tjokro'], name: 'Grand Tjokro Balikpapan', area: 'Jl. Marsma R. Iswahyudi', isOwn: false },
+    { id: 'astara', group: 'CORE', matchKeys: ['astara'], name: 'Astara Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'gran_senyiur', group: 'EXTENDED', matchKeys: ['senyiur'], name: 'Gran Senyiur Balikpapan', area: 'Jl. ARS Moh. No. 1-7', isOwn: false },
+    { id: 'horison_ultima', group: 'EXTENDED', matchKeys: ['horison'], name: 'Horison Ultima Benua Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'penta_city', group: 'EXTENDED', matchKeys: ['penta'], name: 'Penta City Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'golden_tulip', group: 'EXTENDED', matchKeys: ['golden tulip'], name: 'Golden Tulip Balikpapan Hotel & Suites', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'dprima', group: 'EXTENDED', matchKeys: ['prima', 'dprima'], name: "D'Prima Hotel Balikpapan", area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'pacific', group: 'EXTENDED', matchKeys: ['pacific'], name: 'Pacific Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'sagita', group: 'EXTENDED', matchKeys: ['sagita'], name: 'Sagita Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'ibis', group: 'EXTENDED', matchKeys: ['ibis'], name: 'ibis Balikpapan', area: 'Jl. Brigjen Ery Suparjan', isOwn: false },
+    { id: 'quest', group: 'EXTENDED', matchKeys: ['quest'], name: 'Quest Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'neo_plus', group: 'EXTENDED', matchKeys: ['neo+', 'neo plus', 'hotel neo', ' neo '], name: 'Hotel NEO+ Balikpapan', area: 'Jl. Podomoro / MT Haryono', isOwn: false },
+    { id: 'zurich', group: 'EXTENDED', matchKeys: ['zurich'], name: 'Zurich Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'swissbel_inn', group: 'EXTENDED', matchKeys: ['swiss-belinn', 'swiss belinn', 'belinn'], name: 'Swiss-Belinn Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'max_one', group: 'EXTENDED', matchKeys: ['maxone', 'max one'], name: 'MaxOneHotels at Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'whiz', group: 'EXTENDED', matchKeys: ['whiz'], name: 'Whiz Prime Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false }
   ];
 
   const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
-    return res.status(400).json({
-      error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.'
-    });
+    return res.status(400).json({ error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.' });
   }
 
   const toNum = (v) => {
-    if (typeof v === 'number') return Number.isFinite(v) && v > 0 ? Math.round(v) : 0;
-    const n = Number(String(v || '').replace(/[^0-9]/g, ''));
-    return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+    if (typeof v === 'number') return Number.isFinite(v) && v > 10000 ? Math.round(v) : 0;
+    if (!v) return 0;
+    const cleaned = String(v).replace(/[^0-9]/g, '');
+    const n = Number(cleaned);
+    return Number.isFinite(n) && n > 10000 ? Math.round(n) : 0;
   };
 
-  const extractOfferPrice = (offer) => {
-    if (!offer || typeof offer !== 'object') return 0;
+  const extractPrice = (obj) => {
+    if (!obj || typeof obj !== 'object') return 0;
     return (
-      toNum(offer.rate_per_night?.extracted_lowest) ||
-      toNum(offer.rate_per_night?.lowest) ||
-      toNum(offer.extracted_lowest) ||
-      toNum(offer.lowest) ||
-      toNum(offer.price) ||
+      toNum(obj.rate_per_night?.extracted_lowest) ||
+      toNum(obj.rate_per_night?.lowest) ||
+      toNum(obj.extracted_lowest) ||
+      toNum(obj.lowest) ||
+      toNum(obj.price) ||
+      toNum(obj.total_rate?.extracted_lowest) ||
       0
     );
   };
 
-  async function fetchDirectHotel(queryText) {
-    try {
-      const u =
-        `https://serpapi.com/search.json?engine=google_hotels` +
-        `&q=${encodeURIComponent(queryText)}` +
-        `&check_in_date=${checkin}&check_out_date=${checkout}` +
-        `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
-      const r = await fetch(u);
-      const d = await r.json();
-      if (!d || d.error) return null;
-      // Google Hotels direct entity response memiliki rate_per_night / featured_prices / prices langsung di root
-      if (d.rate_per_night || Array.isArray(d.featured_prices) || Array.isArray(d.prices)) {
-        return d;
-      }
-      if (Array.isArray(d.properties) && d.properties.length > 0) {
-        return d.properties[0];
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function fetchPropertyDetail(propertyToken, propTitle) {
-    if (!propertyToken) return null;
-    try {
-      const detailUrl =
-        `https://serpapi.com/search.json?engine=google_hotels` +
-        `&q=${encodeURIComponent(propTitle || 'Hotel Balikpapan')}` +
-        `&property_token=${encodeURIComponent(propertyToken)}` +
-        `&check_in_date=${checkin}&check_out_date=${checkout}` +
-        `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
-      const r = await fetch(detailUrl);
-      const d = await r.json();
-      if (d && !d.error) return d;
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
   async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
-    const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
+    const sbUrl = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
     const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-    if (!sbUrl || !sbKey) return false;
+    if (!sbUrl || !sbUrl.startsWith('http') || !sbKey) return false;
 
     const ownHotel = hotels.find((h) => h.isOwn);
     const competitors = hotels.filter((h) => !h.isOwn);
     const openCompetitors = competitors.filter((h) => h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0);
     const soldOutCompCount = Math.max(0, competitors.length - openCompetitors.length);
-
     const marketAvg = openCompetitors.length > 0
       ? Math.round(openCompetitors.reduce((s, x) => s + Number(x.lowest_rate), 0) / openCompetitors.length)
       : 0;
-
-    const soldOutLift = soldOutCompCount * 10000;
     const recommendedBar = marketAvg > 0
-      ? Math.round((marketAvg + soldOutLift) / 5000) * 5000
+      ? Math.round((marketAvg + soldOutCompCount * 10000) / 5000) * 5000
       : 0;
 
     const timeWita = new Date(fetchedAt).toLocaleTimeString('id-ID', {
@@ -296,11 +82,6 @@ export default async function handler(req, res) {
       minute: '2-digit',
       second: '2-digit'
     }) + ' WITA';
-
-    const alerts = [];
-    if (soldOutCompCount >= 3) alerts.push(`${soldOutCompCount} kompetitor Sold Out`);
-    if (!ownHotel || ownHotel.status !== 'AVAILABLE' || !Number(ownHotel.lowest_rate)) alerts.push('Platinum Sold Out');
-    if (alerts.length === 0) alerts.push('Normal Parity');
 
     const logPayload = {
       id: Date.now(),
@@ -312,19 +93,19 @@ export default async function handler(req, res) {
       recommendedBar,
       openCount: openCompetitors.length,
       totalComp: competitors.length,
-      alertSummary: alerts.join(' • ')
+      alertSummary: soldOutCompCount >= 3 ? `${soldOutCompCount} kompetitor Sold Out` : 'Normal Parity'
     };
 
-    const baseHeaders = {
+    const headers = {
       apikey: sbKey,
       Authorization: `Bearer ${sbKey}`,
       'Content-Type': 'application/json'
     };
 
-    const results = await Promise.allSettled([
+    const resList = await Promise.allSettled([
       fetch(`${sbUrl}/rest/v1/rate_shop_logs`, {
         method: 'POST',
-        headers: { ...baseHeaders, Prefer: 'return=minimal' },
+        headers: { ...headers, Prefer: 'return=minimal' },
         body: JSON.stringify({
           checkin_date: checkinDate,
           fetched_at: fetchedAt,
@@ -335,7 +116,7 @@ export default async function handler(req, res) {
       }),
       fetch(`${sbUrl}/rest/v1/rate_shop_snapshots?on_conflict=checkin_date`, {
         method: 'POST',
-        headers: { ...baseHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+        headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
         body: JSON.stringify({
           checkin_date: checkinDate,
           checkout_date: checkoutDate,
@@ -347,7 +128,7 @@ export default async function handler(req, res) {
       })
     ]);
 
-    return results.every((r) => r.status === 'fulfilled' && r.value.ok);
+    return resList.every((r) => r.status === 'fulfilled' && r.value.ok);
   }
 
   try {
@@ -365,90 +146,42 @@ export default async function handler(req, res) {
     }
 
     const props = Array.isArray(json.properties) ? json.properties : [];
+    const usedNames = new Set();
 
-    const usedPropertyNames = new Set();
-    const matchedEntries = tracked.map((item) => {
+    const hotels = tracked.map((item) => {
       const found = props.find((p) => {
-        const rawName = String(p?.name || '').trim();
-        if (!rawName || usedPropertyNames.has(rawName)) return false;
-        const title = rawName.toLowerCase();
-        return item.matchKeys.some((k) => title.includes(k));
+        const raw = String(p?.name || '').trim();
+        if (!raw || usedNames.has(raw)) return false;
+        const low = ` ${raw.toLowerCase()} `;
+        return item.matchKeys.some((k) => low.includes(k.toLowerCase()));
       });
-      if (found?.name) usedPropertyNames.add(String(found.name).trim());
-      return { item, found };
-    });
-
-    // Untuk Platinum & grup CORE yang tidak muncul di 20 hasil umum, tarik langsung berdasarkan nama hotel
-    const resolvedEntries = await Promise.all(
-      matchedEntries.map(async ({ item, found }) => {
-        if (!found && (item.isOwn || item.group === 'CORE')) {
-          const direct = await fetchDirectHotel(item.searchQuery);
-          return { item, found: direct, isDirect: Boolean(direct) };
-        }
-        return { item, found, isDirect: false };
-      })
-    );
-
-    let detailBudget = 8;
-    const detailResults = await Promise.all(
-      resolvedEntries.map(({ found, isDirect }) => {
-        if (!isDirect && found?.property_token && detailBudget > 0) {
-          detailBudget -= 1;
-          return fetchPropertyDetail(found.property_token, found.name);
-        }
-        return Promise.resolve(null);
-      })
-    );
-
-    const hotels = resolvedEntries.map(({ item, found }, idx) => {
-      const detail = detailResults[idx];
-
-      const basePrice =
-        toNum(detail?.rate_per_night?.extracted_lowest) ||
-        toNum(detail?.rate_per_night?.lowest) ||
-        toNum(found?.rate_per_night?.extracted_lowest) ||
-        toNum(found?.rate_per_night?.lowest) ||
-        0;
+      if (found?.name) usedNames.add(String(found.name).trim());
 
       const offers = [
-        ...(Array.isArray(detail?.featured_prices) ? detail.featured_prices : []),
-        ...(Array.isArray(detail?.prices) ? detail.prices : []),
         ...(Array.isArray(found?.featured_prices) ? found.featured_prices : []),
         ...(Array.isArray(found?.prices) ? found.prices : [])
       ];
 
-      const ota = {
-        traveloka: 0,
-        tiket: 0,
-        agoda: 0,
-        booking: 0
-      };
-
+      const ota = { traveloka: 0, tiket: 0, agoda: 0, booking: 0 };
       const otaMap = new Map();
-      let bestPrice = basePrice;
-      let bestSource = String(
-        detail?.rate_per_night?.source || found?.rate_per_night?.source || ''
-      ).trim();
+      let bestPrice = extractPrice(found);
+      let bestSource = String(found?.rate_per_night?.source || found?.source || '').trim();
 
       for (const offer of offers) {
         if (!offer) continue;
         const src = String(offer.source || '').trim();
         const lowSrc = src.toLowerCase();
-        const val = extractOfferPrice(offer);
+        const val = extractPrice(offer);
         if (!val) continue;
 
         if (!bestPrice || val < bestPrice) {
           bestPrice = val;
           if (src) bestSource = src;
         }
-
         if (src) {
           const prev = otaMap.get(src);
-          if (!prev || val < prev) {
-            otaMap.set(src, val);
-          }
+          if (!prev || val < prev) otaMap.set(src, val);
         }
-
         if (lowSrc.includes('traveloka')) {
           if (!ota.traveloka || val < ota.traveloka) ota.traveloka = val;
         } else if (lowSrc.includes('tiket')) {
@@ -480,13 +213,12 @@ export default async function handler(req, res) {
         };
       }
 
-      const hasAnyMainOta = Boolean(ota.traveloka || ota.tiket || ota.agoda || ota.booking);
-      if (!hasAnyMainOta && bestPrice > 0 && bestSource) {
-        const bLower = bestSource.toLowerCase();
-        if (bLower.includes('traveloka')) ota.traveloka = bestPrice;
-        else if (bLower.includes('tiket')) ota.tiket = bestPrice;
-        else if (bLower.includes('agoda')) ota.agoda = bestPrice;
-        else if (bLower.includes('booking')) ota.booking = bestPrice;
+      if (!(ota.traveloka || ota.tiket || ota.agoda || ota.booking) && bestPrice > 0 && bestSource) {
+        const sLow = bestSource.toLowerCase();
+        if (sLow.includes('traveloka')) ota.traveloka = bestPrice;
+        else if (sLow.includes('tiket')) ota.tiket = bestPrice;
+        else if (sLow.includes('agoda')) ota.agoda = bestPrice;
+        else if (sLow.includes('booking')) ota.booking = bestPrice;
       }
 
       return {
