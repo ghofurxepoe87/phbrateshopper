@@ -26,6 +26,17 @@ export default async function handler(req, res) {
     });
   }
 
+  function extractPrice(obj) {
+    if (!obj) return 0;
+    if (obj.rate_per_night?.extracted_lowest) return Number(obj.rate_per_night.extracted_lowest);
+    if (obj.extracted_lowest) return Number(obj.extracted_lowest);
+    if (obj.price) {
+      const num = Number(String(obj.price).replace(/[^0-9]/g, ''));
+      return Number.isFinite(num) ? num : 0;
+    }
+    return 0;
+  }
+
   try {
     const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=4+star+hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;
     const response = await fetch(queryUrl);
@@ -39,31 +50,66 @@ export default async function handler(req, res) {
 
     const hotels = tracked.map(item => {
       const found = props.find(p => (p.name || '').toLowerCase().includes(item.matchKey));
-      const lowest = found?.rate_per_night?.extracted_lowest || 0;
+      const baseLowest = extractPrice(found?.rate_per_night);
 
-      if (!found || !lowest) {
+      const rawOffers = [
+        ...(Array.isArray(found?.featured_prices) ? found.featured_prices : []),
+        ...(Array.isArray(found?.prices) ? found.prices : [])
+      ];
+
+      const ota = {};
+      const otherSources = [];
+      let bestPrice = baseLowest;
+      let bestSource = found?.rate_per_night?.source || '';
+
+      rawOffers.forEach(offer => {
+        const srcName = String(offer?.source || '').trim();
+        const srcLower = srcName.toLowerCase();
+        const val = extractPrice(offer);
+        if (!val || val <= 0) return;
+
+        if (!bestPrice || val < bestPrice) {
+          bestPrice = val;
+          if (srcName) bestSource = srcName;
+        }
+
+        const isOfficialHotel = srcLower.includes('official') || srcLower.includes('platinum') || srcLower.includes('site');
+
+        if (srcLower.includes('traveloka')) {
+          if (!ota.traveloka || val < ota.traveloka) ota.traveloka = val;
+        } else if (srcLower.includes('tiket')) {
+          if (!ota.tiket || val < ota.tiket) ota.tiket = val;
+        } else if (srcLower.includes('agoda')) {
+          if (!ota.agoda || val < ota.agoda) ota.agoda = val;
+        } else if (srcLower.includes('booking')) {
+          if (!ota.booking || val < ota.booking) ota.booking = val;
+        } else if (srcName && !isOfficialHotel) {
+          otherSources.push(`${srcName}: ${val.toLocaleString('id-ID')}`);
+        }
+      });
+
+      if (!found || !bestPrice || bestPrice <= 0) {
         return {
           ...item,
           status: 'SOLD_OUT',
           lowest_rate: 0,
+          lowest_source: '',
+          other_sources: [],
           ota_breakdown: {}
         };
       }
 
-      const ota = {};
-      (found.prices || []).forEach(p => {
-        const src = (p.source || '').toLowerCase();
-        const val = p.rate_per_night?.extracted_lowest || 0;
-        if (src.includes('traveloka')) ota.traveloka = val;
-        if (src.includes('tiket')) ota.tiket = val;
-        if (src.includes('agoda')) ota.agoda = val;
-        if (src.includes('booking')) ota.booking = val;
-      });
+      // Jika kolom OTA tertentu kosong tapi ada harga terendah + sumber lain, isi agar terlihat informatif
+      if (!bestSource && otherSources.length > 0) {
+        bestSource = otherSources[0].split(':')[0];
+      }
 
       return {
         ...item,
         status: 'AVAILABLE',
-        lowest_rate: lowest,
+        lowest_rate: bestPrice,
+        lowest_source: bestSource,
+        other_sources: otherSources.slice(0, 3),
         ota_breakdown: ota
       };
     });
