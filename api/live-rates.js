@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 2. Load saved snapshot from Supabase (0 SerpApi Quota)
+    // 2. Load saved snapshot from Supabase per check-in date (0 SerpApi Quota)
     if (cachedOnly) {
       if (!sbUrl || !sbKey) return res.status(200).json({ cached: false, hotels: [] });
       try {
@@ -98,7 +98,6 @@ module.exports = async function handler(req, res) {
       { id: 'whiz', group: 'EXTENDED', fallbackRate: 360000, matchKeys: ['whiz'], name: 'Whiz Prime Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false }
     ];
 
-    // Tanpa batas atas harga (No upper cap) agar 100% sama dengan tarikan OTA
     const toNum = (v) => {
       if (typeof v === 'number') {
         return Number.isFinite(v) && v >= 50000 ? Math.round(v) : 0;
@@ -301,6 +300,21 @@ module.exports = async function handler(req, res) {
           if (!ota.agoda || val < ota.agoda) ota.agoda = val;
         } else if (lowSrc.includes('booking')) {
           if (!ota.booking || val < ota.booking) ota.booking = val;
+        }
+      }
+
+      if (bestPrice > 0 && !ota.traveloka && !ota.tiket && !ota.agoda && !ota.booking) {
+        const lowBestSrc = bestSource.toLowerCase();
+        if (lowBestSrc.includes('traveloka')) {
+          ota.traveloka = bestPrice;
+        } else if (lowBestSrc.includes('tiket')) {
+          ota.tiket = bestPrice;
+        } else if (lowBestSrc.includes('agoda')) {
+          ota.agoda = bestPrice;
+        } else if (lowBestSrc.includes('booking')) {
+          ota.booking = bestPrice;
+        } else {
+          ota.traveloka = bestPrice;
         }
       }
 
