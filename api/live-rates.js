@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
   const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-  // 1. Mode baca riwayat log dari Supabase (0 Kuota SerpApi)
+  // 1. Baca riwayat log dari Supabase (0 Kuota SerpApi)
   if (loadLogsOnly) {
     if (!sbUrl || !sbKey) {
       return res.status(200).json({ logs: [] });
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Mode baca snapshot tersimpan dari Supabase (0 Kuota SerpApi)
+  // 2. Baca snapshot tersimpan dari Supabase per tanggal check-in (0 Kuota SerpApi)
   if (cachedOnly) {
     if (!sbUrl || !sbKey) {
       return res.status(200).json({ cached: false, hotels: [] });
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. Mode Live Fetch ke SerpApi (Hanya dijalankan saat tombol "Cek OTA Sekarang" diklik)
+  // 3. Live Fetch ke SerpApi (1x panggilan per klik "Check OTA Now")
   const tracked = [
     { id: 'platinum', group: 'CORE', matchKeys: ['platinum'], name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta, Balikpapan', isOwn: true },
     { id: 'bluesky', group: 'CORE', matchKeys: ['blue sky'], name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur, Balikpapan', isOwn: false },
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
-    return res.status(400).json({ error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.' });
+    return res.status(400).json({ error: 'SERPAPI_KEY is not configured in Vercel Environment Variables.' });
   }
 
   const toNum = (v) => {
@@ -134,7 +134,7 @@ export default async function handler(req, res) {
       ? Math.round((marketAvg + soldOutCompCount * 10000) / 5000) * 5000
       : 0;
 
-    const timeWita = new Date(fetchedAt).toLocaleTimeString('id-ID', {
+    const timeWita = new Date(fetchedAt).toLocaleTimeString('en-GB', {
       timeZone: 'Asia/Makassar',
       hour: '2-digit',
       minute: '2-digit',
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
       recommendedBar,
       openCount: openCompetitors.length,
       totalComp: competitors.length,
-      alertSummary: soldOutCompCount >= 3 ? `${soldOutCompCount} kompetitor Sold Out` : 'Normal Parity'
+      alertSummary: soldOutCompCount >= 3 ? `${soldOutCompCount} Competitors Sold Out` : 'Normal Parity'
     };
 
     const headers = {
