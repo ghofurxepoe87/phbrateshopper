@@ -15,7 +15,6 @@ export default async function handler(req, res) {
   const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
   const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-  // 1. Read history logs from Supabase (0 SerpApi Quota)
   if (loadLogsOnly) {
     if (!sbUrl || !sbKey) return res.status(200).json({ logs: [] });
     try {
@@ -31,7 +30,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Read saved snapshot from Supabase per check-in date (0 SerpApi Quota)
   if (cachedOnly) {
     if (!sbUrl || !sbKey) return res.status(200).json({ cached: false, hotels: [] });
     try {
@@ -92,7 +90,8 @@ export default async function handler(req, res) {
     return Number.isFinite(n) && n > 10000 ? Math.round(n) : 0;
   };
 
-  const extractPrice = (obj) => {
+  // Hanya ambil rate_per_night (tarif 1 malam), hindari total_rate (multi-malam)
+  const extractPerNightPrice = (obj) => {
     if (!obj || typeof obj !== 'object') return 0;
     return (
       toNum(obj.rate_per_night?.extracted_lowest) ||
@@ -100,7 +99,6 @@ export default async function handler(req, res) {
       toNum(obj.extracted_lowest) ||
       toNum(obj.lowest) ||
       toNum(obj.price) ||
-      toNum(obj.total_rate?.extracted_lowest) ||
       0
     );
   };
@@ -111,7 +109,7 @@ export default async function handler(req, res) {
         `https://serpapi.com/search.json?engine=google_hotels` +
         `&q=${encodeURIComponent('Platinum Hotel & Convention Hall Balikpapan')}` +
         `&check_in_date=${checkin}&check_out_date=${checkout}` +
-        `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
+        `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
       const r = await fetch(u);
       const d = await r.json();
       if (!d || d.error) return null;
@@ -204,7 +202,7 @@ export default async function handler(req, res) {
       `https://serpapi.com/search.json?engine=google_hotels` +
       `&q=${encodeURIComponent('hotels in Balikpapan')}` +
       `&check_in_date=${checkin}&check_out_date=${checkout}` +
-      `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
+      `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
 
     const response = await fetch(searchUrl);
     const json = await response.json();
@@ -227,9 +225,8 @@ export default async function handler(req, res) {
       return { item, found };
     });
 
-    // Khusus untuk Platinum Hotel: jika tidak muncul di 20 hasil umum kota, tarik langsung kartu propertinya (+1 kuota saja)
     const platIdx = matchedList.findIndex((x) => x.item.isOwn);
-    if (platIdx !== -1 && !extractPrice(matchedList[platIdx].found)) {
+    if (platIdx !== -1 && !extractPerNightPrice(matchedList[platIdx].found)) {
       const platDirect = await fetchPlatinumLive();
       if (platDirect) {
         matchedList[platIdx].found = platDirect;
@@ -244,7 +241,7 @@ export default async function handler(req, res) {
 
       const ota = { traveloka: 0, tiket: 0, agoda: 0, booking: 0 };
       const otaMap = new Map();
-      let bestPrice = extractPrice(found);
+      let bestPrice = extractPerNightPrice(found);
       let bestSource = String(found?.rate_per_night?.source || found?.source || '').trim();
       let isEstimated = false;
 
@@ -252,7 +249,7 @@ export default async function handler(req, res) {
         if (!offer) continue;
         const src = String(offer.source || '').trim();
         const lowSrc = src.toLowerCase();
-        const val = extractPrice(offer);
+        const val = extractPerNightPrice(offer);
         if (!val) continue;
 
         if (!bestPrice || val < bestPrice) {
@@ -274,8 +271,20 @@ export default async function handler(req, res) {
         }
       }
 
+      // Filter anomali multi-malam / suite: jika salah satu OTA melonjak >= 1.8x dari bestPrice per malam, samakan ke rate standar per malam
+      if (bestPrice > 0) {
+        const ceiling = bestPrice * 1.8;
+        if (ota.traveloka > ceiling) ota.traveloka = bestPrice;
+        if (ota.tiket > ceiling) ota.tiket = bestPrice;
+        if (ota.agoda > ceiling) ota.agoda = bestPrice;
+        if (ota.booking > ceiling) ota.booking = bestPrice;
+      }
+
       const allOtaRates = Array.from(otaMap.entries())
-        .map(([source, rate]) => ({ source, rate }))
+        .map(([source, rate]) => ({
+          source,
+          rate: bestPrice > 0 && rate > bestPrice * 1.8 ? bestPrice : rate
+        }))
         .sort((a, b) => a.rate - b.rate);
 
       if (!bestPrice && allOtaRates.length > 0) {
