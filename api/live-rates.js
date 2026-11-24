@@ -7,22 +7,34 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 12000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
   try {
-    const checkin = (req.query && req.query.checkin) || new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
-    const cachedOnly = req.query && req.query.cached === '1';
-    const loadLogsOnly = req.query && req.query.logs === '1';
+    const query = req.query || {};
+    const checkin = String(query.checkin || new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+    const checkout = new Date(new Date(`${checkin}T00:00:00Z`).getTime() + 86400000).toISOString().split('T')[0];
+    const cachedOnly = query.cached === '1';
+    const loadLogsOnly = query.logs === '1';
 
     const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
     const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-    // 1. Load history logs from Supabase (0 SerpApi Quota)
+    // 1. Read history logs from Supabase (0 SerpApi Quota)
     if (loadLogsOnly) {
       if (!sbUrl || !sbKey) return res.status(200).json({ logs: [] });
       try {
-        const r = await fetch(
+        const r = await fetchWithTimeout(
           `${sbUrl}/rest/v1/rate_shop_logs?select=payload,fetched_at&order=fetched_at.desc&limit=60`,
-          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } }
+          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } },
+          8000
         );
         const rows = await r.json();
         const logs = Array.isArray(rows) ? rows.map((x) => x.payload).filter(Boolean) : [];
@@ -32,13 +44,14 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 2. Load cached snapshot from Supabase (0 SerpApi Quota)
+    // 2. Read saved snapshot from Supabase per check-in date (0 SerpApi Quota)
     if (cachedOnly) {
       if (!sbUrl || !sbKey) return res.status(200).json({ cached: false, hotels: [] });
       try {
-        const r = await fetch(
+        const r = await fetchWithTimeout(
           `${sbUrl}/rest/v1/rate_shop_snapshots?checkin_date=eq.${encodeURIComponent(checkin)}&select=checkin_date,checkout_date,fetched_at,hotels&limit=1`,
-          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } }
+          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } },
+          8000
         );
         const rows = await r.json();
         if (Array.isArray(rows) && rows.length > 0 && Array.isArray(rows[0].hotels)) {
@@ -58,7 +71,7 @@ module.exports = async function handler(req, res) {
 
     const apiKey = process.env.SERPAPI_KEY;
     if (!apiKey) {
-      return res.status(400).json({ error: 'SERPAPI_KEY belum terpasang di Vercel Environment Variables.' });
+      return res.status(400).json({ error: 'SERPAPI_KEY belum dikonfigurasi di Vercel Environment Variables.' });
     }
 
     const tracked = [
@@ -108,30 +121,45 @@ module.exports = async function handler(req, res) {
       );
     };
 
-    async function fetchPlatinumLive() {
-      try {
-        const u =
-          `https://serpapi.com/search.json?engine=google_hotels` +
-          `&q=${encodeURIComponent('Platinum Hotel & Convention Hall Balikpapan')}` +
-          `&check_in_date=${checkin}&check_out_date=${checkout}` +
-          `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
-        const r = await fetch(u);
-        const d = await r.json();
-        if (!d || d.error) return null;
+    const hasAnyOfferPrice = (obj) => {
+      if (!obj || typeof obj !== 'object') return false;
+      if (extractPerNightPrice(obj) > 0) return true;
+      const offers = [
+        ...(Array.isArray(obj.featured_prices) ? obj.featured_prices : []),
+        ...(Array.isArray(obj.prices) ? obj.prices : [])
+      ];
+      return offers.some((o) => extractPerNightPrice(o) > 0);
+    };
 
-        if (d.rate_per_night || Array.isArray(d.featured_prices) || Array.isArray(d.prices)) {
-          return d;
+    async function fetchPlatinumLive() {
+      const queries = [
+        'Platinum Hotel & Convention Hall Balikpapan',
+        'Platinum Hotel Balikpapan'
+      ];
+      for (const qText of queries) {
+        try {
+          const u =
+            `https://serpapi.com/search.json?engine=google_hotels` +
+            `&q=${encodeURIComponent(qText)}` +
+            `&check_in_date=${checkin}&check_out_date=${checkout}` +
+            `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
+          const r = await fetchWithTimeout(u, {}, 12000);
+          const d = await r.json();
+          if (!d || d.error) continue;
+
+          if (hasAnyOfferPrice(d)) return d;
+
+          if (Array.isArray(d.properties) && d.properties.length > 0) {
+            const matched = d.properties.find((p) =>
+              String((p && p.name) || '').toLowerCase().includes('platinum') && hasAnyOfferPrice(p)
+            );
+            if (matched) return matched;
+          }
+        } catch {
+          // lanjut ke kueri cadangan
         }
-        if (Array.isArray(d.properties) && d.properties.length > 0) {
-          const matched = d.properties.find((p) =>
-            String((p && p.name) || '').toLowerCase().includes('platinum')
-          );
-          return matched || d.properties[0];
-        }
-        return null;
-      } catch {
-        return null;
       }
+      return null;
     }
 
     async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
@@ -172,7 +200,7 @@ module.exports = async function handler(req, res) {
       };
 
       const resList = await Promise.allSettled([
-        fetch(`${sbUrl}/rest/v1/rate_shop_logs`, {
+        fetchWithTimeout(`${sbUrl}/rest/v1/rate_shop_logs`, {
           method: 'POST',
           headers: { ...headers, Prefer: 'return=minimal' },
           body: JSON.stringify({
@@ -182,8 +210,8 @@ module.exports = async function handler(req, res) {
             recommended_bar: recommendedBar,
             payload: logPayload
           })
-        }),
-        fetch(`${sbUrl}/rest/v1/rate_shop_snapshots?on_conflict=checkin_date`, {
+        }, 8000),
+        fetchWithTimeout(`${sbUrl}/rest/v1/rate_shop_snapshots?on_conflict=checkin_date`, {
           method: 'POST',
           headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
           body: JSON.stringify({
@@ -194,10 +222,10 @@ module.exports = async function handler(req, res) {
             recommended_bar: recommendedBar,
             hotels
           })
-        })
+        }, 8000)
       ]);
 
-      return resList.every((r) => r.status === 'fulfilled' && r.value.ok);
+      return resList.every((r) => r.status === 'fulfilled' && r.value && r.value.ok);
     }
 
     const searchUrl =
@@ -206,7 +234,7 @@ module.exports = async function handler(req, res) {
       `&check_in_date=${checkin}&check_out_date=${checkout}` +
       `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
 
-    const response = await fetch(searchUrl);
+    const response = await fetchWithTimeout(searchUrl, {}, 14000);
     const json = await response.json();
 
     if (json.error) {
@@ -227,9 +255,9 @@ module.exports = async function handler(req, res) {
       return { item, found };
     });
 
-    // Tarik kartu live khusus Platinum Hotel (+1 kuota) jika tidak masuk 20 hasil umum kota
+    // Pastikan Platinum Hotel mendapat data live OTA meskipun tidak masuk 20 hasil umum kota
     const platIdx = matchedList.findIndex((x) => x.item.isOwn);
-    if (platIdx !== -1 && !extractPerNightPrice(matchedList[platIdx].found)) {
+    if (platIdx !== -1 && !hasAnyOfferPrice(matchedList[platIdx].found)) {
       const platDirect = await fetchPlatinumLive();
       if (platDirect) {
         matchedList[platIdx].found = platDirect;
