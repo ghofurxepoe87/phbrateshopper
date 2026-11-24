@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Rate Shopper — Platinum Hotel Balikpapan</title>
+  <title>BPN Live Rate Shopper (STAAH Edition) — Platinum Hotel & Convention Hall Balikpapan</title>
+  <link rel="icon" type="image/png" href="./logo.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -45,14 +46,23 @@
   <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md px-4 py-2.5">
     <div class="max-w-[1540px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3">
-        <div class="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-sm">
-          <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
-            ✦
-          </div>
-          <div class="leading-none">
-            <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
-            <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
-            <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
+        <!-- Brand Logo Box (logo.png) -->
+        <div class="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2.5 shadow-sm">
+          <img
+            src="./logo.png"
+            alt="Platinum Hotel & Convention Hall Balikpapan"
+            class="h-9 w-auto max-w-[140px] object-contain"
+            onerror="this.style.display='none'; document.getElementById('logoFallback').classList.remove('hidden');"
+          />
+          <div id="logoFallback" class="hidden flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
+              ✦
+            </div>
+            <div class="leading-none">
+              <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
+              <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
+              <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
+            </div>
           </div>
         </div>
 
@@ -163,8 +173,13 @@
     <!-- Header Summary Card -->
     <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
-        <div class="w-11 h-11 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-phb-blue">
-          <i data-lucide="building-2" class="w-5 h-5"></i>
+        <div class="w-12 h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center p-1.5 overflow-hidden">
+          <img
+            src="./logo.png"
+            alt="PHB"
+            class="w-full h-full object-contain"
+            onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'w-5 h-5 text-phb-blue'}))"
+          />
         </div>
         <div>
           <div class="flex flex-wrap items-center gap-2">
