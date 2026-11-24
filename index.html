@@ -69,10 +69,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">BPN Live Rate Shopper</h1>
-          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-white/20 text-white">
-            STAAH MODE • 20 HOTELS
-          </span>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Live Rate Shopper</h1>
           <span id="modeBadge" class="flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm">
             <i data-lucide="cloud-check" class="w-3 h-3"></i>
             <span id="modeBadgeText">Connecting...</span>
@@ -130,18 +127,9 @@
         <div class="flex items-center gap-1">
           <span class="text-slate-500 font-medium">Set:</span>
           <select id="groupFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
-            <option value="ALL">Semua (20 Hotel)</option>
+            <option value="ALL">Semua Hotel</option>
             <option value="CORE">Core Set (Atas Sub-Total)</option>
             <option value="EXTENDED">Extended Set (Bawah Sub-Total)</option>
-          </select>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">Board:</span>
-          <select id="boardFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
-            <option value="ALL">Semua (RO/BB)</option>
-            <option value="BB">Breakfast (BB)</option>
-            <option value="RO">Room Only (RO)</option>
           </select>
         </div>
 
@@ -224,8 +212,8 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200">
-              <th colspan="3" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
-                PROPERTY, BOARD & OTA STATUS
+              <th colspan="2" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
+                PROPERTY & OTA STATUS
               </th>
               <th colspan="4" class="py-2.5 px-4 bg-sky-50 text-phb-blue text-center border-r border-slate-200">
                 ONLINE TRAVEL AGENT (OTA) PUBLIC RATES
@@ -236,15 +224,14 @@
             </tr>
             <tr class="bg-phb-blue text-white text-[11px] font-bold">
               <th class="py-3 px-4 border-r border-white/15">Properti Hotel Competitor Set (A)</th>
-              <th class="py-3 px-2.5 text-center border-r border-white/15">Board (B)</th>
-              <th class="py-3 px-2.5 text-center border-r border-white/15">Status (C)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (D)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (E)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (F)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (G)</th>
-              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (H)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Spread Avg (I)</th>
-              <th class="py-3 px-3 text-center">Parity Check (J)</th>
+              <th class="py-3 px-2.5 text-center border-r border-white/15">Status (B)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (C)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (D)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (E)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (F)</th>
+              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (G)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Spread Avg (H)</th>
+              <th class="py-3 px-3 text-center">Parity Check (I)</th>
             </tr>
           </thead>
           <tbody id="rateTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
@@ -384,26 +371,6 @@
       const grp = document.getElementById('groupFilterSelect')?.value || 'ALL';
       if (grp === 'ALL') return hotels;
       return hotels.filter(h => h.isOwn || h.group === grp);
-    }
-
-    function detectBoard(hotel) {
-      if (!hotel) return 'RO';
-      const isOpen = hotel.status === 'AVAILABLE' && Number(hotel.lowest_rate) > 0;
-      if (!isOpen) return '-';
-      const blob = JSON.stringify({
-        ota: hotel.ota_breakdown || {},
-        source: hotel.lowest_source || '',
-        others: hotel.all_ota_rates || []
-      }).toLowerCase();
-      if (
-        blob.includes('breakfast') ||
-        blob.includes('sarapan') ||
-        blob.includes('with breakfast') ||
-        blob.includes('bb')
-      ) {
-        return 'BB';
-      }
-      return 'RO';
     }
 
     function setViewMode(mode) {
@@ -623,25 +590,21 @@
       tbody.innerHTML = '';
 
       if (currentHotels.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="py-10 text-center text-slate-500">Klik <strong>Cek OTA Sekarang</strong> untuk menarik data live rate tiap hotel berdasarkan OTA.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500">Klik <strong>Cek OTA Sekarang</strong> untuk menarik data live rate tiap hotel berdasarkan OTA.</td></tr>`;
         return;
       }
 
-      const boardFilter = document.getElementById('boardFilterSelect').value;
       const statusFilter = document.getElementById('statusFilterSelect').value;
 
       const filtered = m.scoped.filter(h => {
         const isOpen = h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0;
         if (statusFilter === 'AVAILABLE' && !isOpen) return false;
         if (statusFilter === 'SOLD_OUT' && isOpen) return false;
-        const board = detectBoard(h);
-        if (boardFilter !== 'ALL' && board !== boardFilter) return false;
         return true;
       });
 
       filtered.forEach(h => {
         const isOpen = h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0;
-        const board = detectBoard(h);
         const ota = h.ota_breakdown || {};
         const otaList = Array.isArray(h.all_ota_rates) && h.all_ota_rates.length > 0
           ? h.all_ota_rates.map(x => `<span class="inline-block bg-sky-50 text-phb-blue border border-sky-200 rounded px-1.5 py-0.5 text-[10px] font-semibold mono">${x.source}: ${formatNum(x.rate)}</span>`).join(' ')
@@ -674,9 +637,6 @@
             </div>
             <span class="block text-[11px] text-slate-500 mt-0.5">${h.area}</span>
             ${isOpen && otaList ? `<div class="flex flex-wrap gap-1 mt-1.5">${otaList}</div>` : ''}
-          </td>
-          <td class="py-3 px-2.5 text-center border-r border-slate-200">
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-phb-blue border border-sky-200">${board}</span>
           </td>
           <td class="py-3 px-2.5 text-center border-r border-slate-200">
             ${isOpen
@@ -802,15 +762,15 @@
     function exportCSV() {
       const checkin = document.getElementById('checkinInput').value;
       const m = computeMetrics(currentHotels);
-      let csv = 'CheckIn,Group,Hotel,Board,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,RecommendedBAR\n';
+      let csv = 'CheckIn,Group,Hotel,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,RecommendedBAR\n';
       m.scoped.forEach(h => {
         const o = h.ota_breakdown || {};
-        csv += `${checkin},${h.group || 'CORE'},"${h.name}",${detectBoard(h)},${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
+        csv += `${checkin},${h.group || 'CORE'},"${h.name}",${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `PHB_STAAH_CompSet_${checkin}.csv`;
+      link.download = `PHB_CompSet_${checkin}.csv`;
       link.click();
     }
 
