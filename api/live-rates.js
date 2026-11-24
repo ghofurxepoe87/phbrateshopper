@@ -1,126 +1,455 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+<script>
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('checkinInput').value = todayStr;
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+    const defaultEndpoint = window.location.protocol.startsWith('http') ? '/api/live-rates' : '';
+    let apiEndpoint = localStorage.getItem('bpn_vercel_endpoint') || defaultEndpoint;
+    let sbUrl = localStorage.getItem('bpn_sb_url') || '';
+    let sbKey = localStorage.getItem('bpn_sb_key') || '';
 
-  const checkin = req.query.checkin || new Date(Date.now() + 86400000).toISOString().split('T')[0];
-  const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
+    let currentView = 'DAILY';
+    let currentHotels = [];
+    let dateSnapshots = JSON.parse(localStorage.getItem('bpn_date_snapshots') || '{}');
+    let historyLogs = JSON.parse(localStorage.getItem('bpn_history_logs') || '[]');
+    let pollTimer = null;
 
-  const tracked = [
-    { id: 'platinum', matchKey: 'platinum', name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta, Balikpapan', isOwn: true },
-    { id: 'swissbel', matchKey: 'swiss-belhotel', name: 'Swiss-Belhotel Balikpapan', area: 'Balikpapan Ocean Square (BOS)', isOwn: false },
-    { id: 'fourpoints', matchKey: 'four points', name: 'Four Points by Sheraton Balikpapan', area: 'Sepinggan / Airport Corridor', isOwn: false },
-    { id: 'aston', matchKey: 'aston', name: 'ASTON Balikpapan Hotel & Residence', area: 'Jl. Jenderal Sudirman', isOwn: false },
-    { id: 'bluesky', matchKey: 'blue sky', name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur', isOwn: false },
-    { id: 'novotel', matchKey: 'novotel', name: 'Novotel Balikpapan', area: 'Jl. Brigjen Ery Suparjan', isOwn: false }
-  ];
-
-  const apiKey = process.env.SERPAPI_KEY;
-  if (!apiKey) {
-    return res.status(400).json({
-      error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.'
-    });
-  }
-
-  function extractPrice(obj) {
-    if (!obj) return 0;
-    if (obj.rate_per_night?.extracted_lowest) return Number(obj.rate_per_night.extracted_lowest);
-    if (obj.extracted_lowest) return Number(obj.extracted_lowest);
-    if (obj.price) {
-      const num = Number(String(obj.price).replace(/[^0-9]/g, ''));
-      return Number.isFinite(num) ? num : 0;
-    }
-    return 0;
-  }
-
-  try {
-    const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;n&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;
-    const response = await fetch(queryUrl);
-    const json = await response.json();
-
-    if (json.error) {
-      return res.status(502).json({ error: json.error });
+    function formatNum(amount) {
+      const n = Number(amount);
+      if (!Number.isFinite(n) || n <= 0) return '-';
+      return Math.round(n).toLocaleString('id-ID');
     }
 
-    const props = json.properties || [];
+    function formatIDR(amount) {
+      const n = Number(amount);
+      if (!Number.isFinite(n) || n <= 0) return '-';
+      return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    }
 
-    const hotels = tracked.map(item => {
-      const found = props.find(p => (p.name || '').toLowerCase().includes(item.matchKey));
-      const baseLowest = extractPrice(found?.rate_per_night);
+    function nowWITA() {
+      return new Date().toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }) + ' WITA';
+    }
 
-      const rawOffers = [
-        ...(Array.isArray(found?.featured_prices) ? found.featured_prices : []),
-        ...(Array.isArray(found?.prices) ? found.prices : [])
-      ];
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    }
 
-      const ota = {};
-      const otherSources = [];
-      let bestPrice = baseLowest;
-      let bestSource = found?.rate_per_night?.source || '';
+    function detectBoard(hotel) {
+      const blob = JSON.stringify(hotel?.ota_breakdown || {}).toLowerCase();
+      if (blob.includes('breakfast') || blob.includes('sarapan') || blob.includes('bb')) return 'BB';
+      return 'RO';
+    }
 
-      rawOffers.forEach(offer => {
-        const srcName = String(offer?.source || '').trim();
-        const srcLower = srcName.toLowerCase();
-        const val = extractPrice(offer);
-        if (!val || val <= 0) return;
+    function setViewMode(mode) {
+      currentView = mode;
+      ['DAILY', 'GRID7', 'HISTORY'].forEach(m => {
+        document.getElementById('panel' + m).classList.toggle('hidden', m !== mode);
+        const btn = document.getElementById('view' + m);
+        btn.className = m === mode
+          ? 'px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition'
+          : 'px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition';
+      });
+      renderActiveView();
+    }
 
-        if (!bestPrice || val < bestPrice) {
-          bestPrice = val;
-          if (srcName) bestSource = srcName;
+    function handleDateChange() {
+      const checkin = document.getElementById('checkinInput').value;
+      if (dateSnapshots[checkin]) {
+        currentHotels = dateSnapshots[checkin];
+        renderActiveView();
+      } else {
+        fetchLiveRates();
+      }
+    }
+
+    async function fetchLiveRates(targetDate = null, silent = false) {
+      const checkin = targetDate || document.getElementById('checkinInput').value;
+      const icon = document.getElementById('spinIcon');
+      const badge = document.getElementById('modeBadge');
+      const badgeText = document.getElementById('modeBadgeText');
+      const alertBanner = document.getElementById('alertBanner');
+
+      if (!silent && icon) icon.classList.add('animate-spin');
+
+      if (!apiEndpoint) {
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm';
+        badgeText.textContent = 'Offline Mode';
+        if (!silent && icon) icon.classList.remove('animate-spin');
+        renderActiveView();
+        return null;
+      }
+
+      try {
+        const res = await fetch(`${apiEndpoint}?checkin=${encodeURIComponent(checkin)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menarik data dari backend');
+
+        const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+        dateSnapshots[checkin] = hotels;
+        localStorage.setItem('bpn_date_snapshots', JSON.stringify(dateSnapshots));
+
+        if (!targetDate || targetDate === document.getElementById('checkinInput').value) {
+          currentHotels = hotels;
+          document.getElementById('lastUpdateText').textContent = nowWITA();
         }
 
-        const isOfficialHotel = srcLower.includes('official') || srcLower.includes('platinum') || srcLower.includes('site');
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm';
+        badgeText.textContent = 'Synced Live';
+        alertBanner.classList.add('hidden');
 
-        if (srcLower.includes('traveloka')) {
-          if (!ota.traveloka || val < ota.traveloka) ota.traveloka = val;
-        } else if (srcLower.includes('tiket')) {
-          if (!ota.tiket || val < ota.tiket) ota.tiket = val;
-        } else if (srcLower.includes('agoda')) {
-          if (!ota.agoda || val < ota.agoda) ota.agoda = val;
-        } else if (srcLower.includes('booking')) {
-          if (!ota.booking || val < ota.booking) ota.booking = val;
-        } else if (srcName && !isOfficialHotel) {
-          otherSources.push(`${srcName}: ${val.toLocaleString('id-ID')}`);
+        recordSnapshotHistory(checkin, hotels);
+        renderActiveView();
+        return hotels;
+      } catch (err) {
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-rose-500 text-white shadow-sm';
+        badgeText.textContent = 'API Error';
+        alertBanner.className = 'rounded-2xl p-3.5 flex items-start gap-3 text-xs border bg-rose-50 border-rose-200 text-rose-800';
+        alertBanner.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i><div><strong>Gagal Sinkronisasi:</strong> ${err.message}</div>`;
+        lucide.createIcons();
+        return null;
+      } finally {
+        if (!silent && icon) setTimeout(() => icon.classList.remove('animate-spin'), 350);
+      }
+    }
+
+    function computeMetrics(hotels) {
+      const offset = parseInt(document.getElementById('offsetSelect').value, 10) || 0;
+      const ownHotel = hotels.find(h => h.isOwn);
+      const competitors = hotels.filter(h => !h.isOwn);
+      const openCompetitors = competitors.filter(h => h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0);
+      const soldOutCompCount = Math.max(0, competitors.length - openCompetitors.length);
+
+      const marketAvg = openCompetitors.length > 0
+        ? openCompetitors.reduce((s, x) => s + Number(x.lowest_rate), 0) / openCompetitors.length
+        : 0;
+
+      const soldOutLift = soldOutCompCount * 15000;
+      const recommendedBar = marketAvg > 0
+        ? Math.round((marketAvg + offset + soldOutLift) / 5000) * 5000
+        : 0;
+
+      const sortedOpen = [...openCompetitors].sort((a, b) => Number(a.lowest_rate) - Number(b.lowest_rate));
+      const lowestComp = sortedOpen[0] || null;
+
+      return { ownHotel, competitors, openCompetitors, soldOutCompCount, soldOutLift, marketAvg, recommendedBar, lowestComp };
+    }
+
+    function recordSnapshotHistory(checkin, hotels) {
+      const m = computeMetrics(hotels);
+      const alerts = [];
+      if (m.soldOutCompCount >= 2) alerts.push(`${m.soldOutCompCount} kompetitor Sold Out`);
+      if (!m.ownHotel || m.ownHotel.status !== 'AVAILABLE' || !Number(m.ownHotel.lowest_rate)) alerts.push('Platinum Sold Out');
+      if (alerts.length === 0) alerts.push('Normal Parity');
+
+      const entry = {
+        id: Date.now(),
+        time: nowWITA(),
+        checkin,
+        ownStatus: (m.ownHotel?.status === 'AVAILABLE' && Number(m.ownHotel?.lowest_rate) > 0) ? 'AVAILABLE' : 'SOLD_OUT',
+        ownLowest: Number(m.ownHotel?.lowest_rate) || 0,
+        marketAvg: Math.round(m.marketAvg),
+        recommendedBar: m.recommendedBar,
+        openCount: m.openCompetitors.length,
+        totalComp: m.competitors.length,
+        alertSummary: alerts.join(' • ')
+      };
+
+      historyLogs.unshift(entry);
+      historyLogs = historyLogs.slice(0, 60);
+      localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
+
+      if (sbUrl && sbKey) {
+        fetch(`${sbUrl.replace(/\/+$/, '')}/rest/v1/rate_shop_logs`, {
+          method: 'POST',
+          headers: {
+            'apikey': sbKey,
+            'Authorization': `Bearer ${sbKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            checkin_date: checkin,
+            fetched_at: new Date().toISOString(),
+            market_avg: Math.round(m.marketAvg),
+            recommended_bar: m.recommendedBar,
+            payload: entry
+          })
+        }).catch(() => {});
+      }
+    }
+
+    async function syncHistoryFromSupabase() {
+      if (!sbUrl || !sbKey) {
+        alert('Isi Supabase URL & Anon Key terlebih dahulu di menu API & Panduan.');
+        return;
+      }
+      try {
+        const res = await fetch(`${sbUrl.replace(/\/+$/, '')}/rest/v1/rate_shop_logs?select=payload,fetched_at&order=fetched_at.desc&limit=60`, {
+          headers: { 'apikey': sbKey, 'Authorization': `Bearer ${sbKey}` }
+        });
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          historyLogs = rows.map(r => r.payload).filter(Boolean);
+          localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
+          renderHistoryView();
         }
+      } catch (e) {
+        alert('Gagal memuat dari Supabase: ' + e.message);
+      }
+    }
+
+    function clearLocalHistory() {
+      historyLogs = [];
+      localStorage.removeItem('bpn_history_logs');
+      renderHistoryView();
+    }
+
+    function renderActiveView() {
+      const checkin = document.getElementById('checkinInput').value;
+      document.getElementById('activeDatePill').textContent = checkin || '-';
+
+      const m = computeMetrics(currentHotels);
+
+      const ownSoldOut = !m.ownHotel || m.ownHotel.status !== 'AVAILABLE' || !Number(m.ownHotel.lowest_rate);
+      const ownEl = document.getElementById('summaryOwnStatus');
+      if (currentHotels.length === 0) {
+        ownEl.textContent = '-';
+        ownEl.className = 'text-slate-700';
+      } else if (ownSoldOut) {
+        ownEl.textContent = 'SOLD OUT / PENUH';
+        ownEl.className = 'text-rose-600 font-bold';
+      } else {
+        ownEl.textContent = `${formatIDR(m.ownHotel.lowest_rate)} (OPEN)`;
+        ownEl.className = 'text-emerald-600 font-bold';
+      }
+
+      document.getElementById('summaryOpenCount').textContent = m.openCompetitors.length;
+      document.getElementById('summaryTotalComp').textContent = m.competitors.length || 5;
+      document.getElementById('summaryMarketAvg').textContent = m.marketAvg > 0 ? formatIDR(m.marketAvg) : 'N/A';
+      document.getElementById('summaryLowestComp').textContent = m.lowestComp
+        ? `${formatIDR(m.lowestComp.lowest_rate)} (${m.lowestComp.name.split(' ')[0]})`
+        : (currentHotels.length ? 'Semua Penuh' : '-');
+
+      document.getElementById('recommendedRateText').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'BAR Standard';
+
+      const liftBadge = document.getElementById('soldOutLiftBadge');
+      if (m.soldOutLift > 0) {
+        liftBadge.classList.remove('hidden');
+        liftBadge.textContent = `Sold-Out Lift +${formatNum(m.soldOutLift)}`;
+      } else {
+        liftBadge.classList.add('hidden');
+      }
+
+      renderDailyTable(m);
+      renderGrid7View(checkin);
+      renderHistoryView();
+    }
+
+    function renderDailyTable(m) {
+      const tbody = document.getElementById('rateTableBody');
+      tbody.innerHTML = '';
+
+      if (currentHotels.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="py-10 text-center text-slate-500">Klik <strong>Cek OTA Sekarang</strong> untuk menarik data live hotel bintang 4 di Balikpapan.</td></tr>`;
+        return;
+      }
+
+      const boardFilter = document.getElementById('boardFilterSelect').value;
+      const statusFilter = document.getElementById('statusFilterSelect').value;
+
+      const filtered = currentHotels.filter(h => {
+        const isOpen = h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0;
+        if (statusFilter === 'AVAILABLE' && !isOpen) return false;
+        if (statusFilter === 'SOLD_OUT' && isOpen) return false;
+        if (boardFilter !== 'ALL' && detectBoard(h) !== boardFilter) return false;
+        return true;
       });
 
-      if (!found || !bestPrice || bestPrice <= 0) {
-        return {
-          ...item,
-          status: 'SOLD_OUT',
-          lowest_rate: 0,
-          lowest_source: '',
-          other_sources: [],
-          ota_breakdown: {}
-        };
+      filtered.forEach(h => {
+        const isOpen = h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0;
+        const board = detectBoard(h);
+        const ota = h.ota_breakdown || {};
+        const otaRates = [ota.traveloka, ota.tiket, ota.agoda, ota.booking].map(Number).filter(v => v > 0);
+        const otaGap = otaRates.length >= 2 ? Math.max(...otaRates) - Math.min(...otaRates) : 0;
+        const spread = isOpen && m.marketAvg > 0 ? Math.round(Number(h.lowest_rate) - m.marketAvg) : 0;
+
+        const sourceNote = isOpen
+          ? (Array.isArray(h.other_sources) && h.other_sources.length > 0
+              ? `${h.area} • ${h.other_sources.join(' | ')}`
+              : `${h.area}${h.lowest_source ? ` • Via ${h.lowest_source}` : ''}`)
+          : h.area;
+
+        let parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-500">-</span>';
+        if (!isOpen) {
+          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-100 text-rose-700">SOLD OUT</span>';
+        } else if (otaGap >= 35000) {
+          parityBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-900">Disparity ${formatNum(otaGap)}</span>`;
+        } else {
+          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">In Parity</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = h.isOwn ? 'bg-amber-50/70 hover:bg-amber-50 transition' : 'bg-white hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-3 px-4 border-r border-slate-200">
+            <div class="flex flex-wrap items-center gap-2">
+              ${h.isOwn ? '<span class="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-phb-amber text-slate-900">PLATINUM</span>' : ''}
+              <span class="font-bold text-slate-800">${h.name}</span>
+            </div>
+            <span class="block text-[11px] text-slate-500 mt-0.5">${sourceNote}</span>
+          </td>
+          <td class="py-3 px-2.5 text-center border-r border-slate-200">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-phb-blue border border-sky-200">${board}</span>
+          </td>
+          <td class="py-3 px-2.5 text-center border-r border-slate-200">
+            ${isOpen
+              ? '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>'
+              : '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">SOLD OUT</span>'
+            }
+          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.traveloka) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.tiket) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.agoda) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.booking) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${isOpen ? 'bg-amber-50/80 text-amber-900' : 'bg-rose-50 text-rose-600'}">${isOpen ? formatNum(h.lowest_rate) : 'FULL'}</td>
+          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${!isOpen ? 'text-slate-400' : spread < 0 ? 'text-emerald-600' : spread > 0 ? 'text-rose-600' : 'text-phb-blue'}">${!isOpen ? '-' : (spread > 0 ? '+' : '') + formatNum(spread)}</td>
+          <td class="py-3 px-3 text-center">${parityBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderGrid7View(startDate) {
+      const head = document.getElementById('grid7Head');
+      const body = document.getElementById('grid7Body');
+      const dates = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+
+      head.innerHTML = `
+        <tr>
+          <th class="py-3 px-4 border-r border-white/15">Properti Hotel Bintang 4</th>
+          ${dates.map(d => `<th class="py-3 px-2.5 text-center border-r border-white/15 cursor-pointer hover:bg-phb-darkblue" onclick="selectDateFromGrid('${d}')">${d.slice(5)}</th>`).join('')}
+        </tr>
+      `;
+
+      const baseList = currentHotels.length > 0 ? currentHotels : [
+        { id: 'platinum', name: 'Platinum Hotel & Convention Hall Balikpapan', isOwn: true },
+        { id: 'swissbel', name: 'Swiss-Belhotel Balikpapan', isOwn: false },
+        { id: 'fourpoints', name: 'Four Points by Sheraton Balikpapan', isOwn: false },
+        { id: 'aston', name: 'ASTON Balikpapan Hotel & Residence', isOwn: false },
+        { id: 'bluesky', name: 'Blue Sky Hotel Balikpapan', isOwn: false },
+        { id: 'novotel', name: 'Novotel Balikpapan', isOwn: false }
+      ];
+
+      body.innerHTML = '';
+      baseList.forEach(base => {
+        const tr = document.createElement('tr');
+        tr.className = base.isOwn ? 'bg-amber-50/60' : 'bg-white';
+        const cells = dates.map(d => {
+          const snap = (dateSnapshots[d] || []).find(x => x.id === base.id);
+          if (!snap) return `<td class="py-2.5 px-2.5 text-center mono text-slate-400 border-r border-slate-200">-</td>`;
+          if (snap.status !== 'AVAILABLE' || !Number(snap.lowest_rate)) {
+            return `<td class="py-2.5 px-2.5 text-center mono font-bold text-rose-600 bg-rose-50/60 border-r border-slate-200">SOLD OUT</td>`;
+          }
+          return `<td class="py-2.5 px-2.5 text-center mono font-semibold text-slate-800 border-r border-slate-200">${formatNum(snap.lowest_rate)}</td>`;
+        }).join('');
+
+        tr.innerHTML = `<td class="py-2.5 px-4 font-bold text-slate-800 border-r border-slate-200">${base.isOwn ? '★ ' : ''}${base.name}</td>${cells}`;
+        body.appendChild(tr);
+      });
+    }
+
+    function selectDateFromGrid(d) {
+      document.getElementById('checkinInput').value = d;
+      setViewMode('DAILY');
+      handleDateChange();
+    }
+
+    async function scanNext7Days() {
+      const btn = document.getElementById('scan7Btn');
+      btn.disabled = true;
+      btn.textContent = 'Scanning 7 Hari...';
+      const start = document.getElementById('checkinInput').value;
+      for (let i = 0; i < 7; i++) {
+        await fetchLiveRates(addDays(start, i), true);
+      }
+      btn.disabled = false;
+      btn.textContent = 'Scan 7 Hari (Pakai Kuota)';
+      renderGrid7View(start);
+    }
+
+    function renderHistoryView() {
+      const tbody = document.getElementById('historyTableBody');
+      document.getElementById('supabaseSyncStatus').textContent = (sbUrl && sbKey)
+        ? 'Penyimpanan: Local Browser + Supabase Cloud'
+        : 'Penyimpanan: Local Browser';
+
+      if (historyLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">Belum ada riwayat scan tersimpan.</td></tr>`;
+        return;
       }
 
-      // Jika kolom OTA tertentu kosong tapi ada harga terendah + sumber lain, isi agar terlihat informatif
-      if (!bestSource && otherSources.length > 0) {
-        bestSource = otherSources[0].split(':')[0];
-      }
+      tbody.innerHTML = historyLogs.map(row => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-4 mono text-slate-600">${row.time || '-'}</td>
+          <td class="py-2.5 px-3 mono font-bold text-phb-blue">${row.checkin}</td>
+          <td class="py-2.5 px-3 font-bold ${row.ownStatus === 'AVAILABLE' ? 'text-emerald-600' : 'text-rose-600'}">${row.ownStatus}</td>
+          <td class="py-2.5 px-3 text-right mono">${row.ownLowest > 0 ? formatNum(row.ownLowest) : '-'}</td>
+          <td class="py-2.5 px-3 text-right mono font-semibold">${row.marketAvg > 0 ? formatNum(row.marketAvg) : '-'}</td>
+          <td class="py-2.5 px-3 text-right mono font-bold text-amber-800">${row.recommendedBar > 0 ? formatNum(row.recommendedBar) : '-'}</td>
+          <td class="py-2.5 px-3 text-center mono">${row.openCount} / ${row.totalComp}</td>
+          <td class="py-2.5 px-4 text-slate-700">${row.alertSummary || '-'}</td>
+        </tr>
+      `).join('');
+    }
 
-      return {
-        ...item,
-        status: 'AVAILABLE',
-        lowest_rate: bestPrice,
-        lowest_source: bestSource,
-        other_sources: otherSources.slice(0, 3),
-        ota_breakdown: ota
-      };
-    });
+    function configureAutoPoll() {
+      if (pollTimer) clearInterval(pollTimer);
+      const ms = parseInt(document.getElementById('autoPollSelect').value, 10) || 0;
+      if (ms > 0) pollTimer = setInterval(() => fetchLiveRates(null, true), ms);
+    }
 
-    return res.status(200).json({
-      checkin,
-      checkout,
-      fetched_at: new Date().toISOString(),
-      hotels
-    });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-}
+    function openConfigModal() {
+      document.getElementById('apiUrlInput').value = apiEndpoint;
+      document.getElementById('sbUrlInput').value = sbUrl;
+      document.getElementById('sbKeyInput').value = sbKey;
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveConfig() {
+      apiEndpoint = document.getElementById('apiUrlInput').value.trim() || defaultEndpoint;
+      sbUrl = document.getElementById('sbUrlInput').value.trim();
+      sbKey = document.getElementById('sbKeyInput').value.trim();
+      localStorage.setItem('bpn_vercel_endpoint', apiEndpoint);
+      localStorage.setItem('bpn_sb_url', sbUrl);
+      localStorage.setItem('bpn_sb_key', sbKey);
+      closeConfigModal();
+      fetchLiveRates();
+    }
+
+    function exportCSV() {
+      const checkin = document.getElementById('checkinInput').value;
+      const m = computeMetrics(currentHotels);
+      let csv = 'CheckIn,Hotel,Board,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,RecommendedBAR\n';
+      currentHotels.forEach(h => {
+        const o = h.ota_breakdown || {};
+        csv += `${checkin},"${h.name}",${detectBoard(h)},${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `PHB_STAAH_RateShop_${checkin}.csv`;
+      link.click();
+    }
+
+    lucide.createIcons();
+    fetchLiveRates();
+  </script>
