@@ -1,707 +1,467 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Live Rate Shopper — Platinum Hotel & Convention Hall Balikpapan</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./favicon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            phb: {
+              blue: '#00669E',
+              darkblue: '#004F7C',
+              lightblue: '#EBF5FB',
+              bg: '#F1F5F9',
+              gold: '#C59B27',
+              amber: '#F5B81C'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
     :root {
-      --navy: #0a3d62;
-      --navy-dark: #072942;
-      --gold: #d4af37;
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --green-bg: #dcfce7;
-      --green-fg: #15803d;
-      --amber-bg: #fef3c7;
-      --amber-fg: #b45309;
-      --red-fg: #dc2626;
-      --chip-bg: #e0f2fe;
-      --chip-fg: #0369a1;
-      --chip-border: #bae6fd;
-      --lowest-bg: #fefce8;
-      --lowest-fg: #854d0e;
+      --sat: env(safe-area-inset-top, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      -webkit-text-size-adjust: 100%;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 16px;
+    .mono {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-variant-numeric: tabular-nums;
     }
-
-    .container {
-      max-width: 1440px;
-      margin: 0 auto;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
-      overflow: hidden;
+    .safe-header {
+      padding-top: calc(0.625rem + var(--sat));
+      padding-left: calc(1rem + var(--sal));
+      padding-right: calc(1rem + var(--sar));
     }
-
-    .header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 20px;
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
+    .safe-main {
+      padding-left: calc(0.75rem + var(--sal));
+      padding-right: calc(0.75rem + var(--sar));
+      padding-bottom: calc(1.25rem + var(--sab));
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    @media (min-width: 640px) {
+      .safe-main {
+        padding-left: calc(1rem + var(--sal));
+        padding-right: calc(1rem + var(--sar));
+      }
     }
-
-    .logo-box {
-      background: linear-gradient(135deg, var(--navy), var(--navy-dark));
-      color: #ffffff;
-      border: 1px solid var(--gold);
-      border-radius: 7px;
-      padding: 7px 11px;
-      text-align: center;
-      line-height: 1.15;
-    }
-
-    .logo-top {
-      font-size: 10px;
-      letter-spacing: 1.8px;
-      color: var(--gold);
-      font-weight: 700;
-    }
-
-    .logo-main {
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 1px;
-    }
-
-    .title-wrap h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--navy-dark);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .badge-sync {
-      font-size: 11px;
-      font-weight: 600;
-      background: var(--green-bg);
-      color: var(--green-fg);
-      padding: 3px 9px;
-      border-radius: 999px;
-    }
-
-    .badge-sync.err {
-      background: #fee2e2;
-      color: var(--red-fg);
-    }
-
-    .sub-info {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 12.5px;
-      font-weight: 600;
-      border-radius: 7px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
-
-    .btn-check {
-      background: #ffffff;
-      color: var(--navy);
-      border-color: #cbd5e1;
-    }
-
-    .btn-check:hover {
-      background: #f8fafc;
-      border-color: var(--navy);
-    }
-
-    .btn-export {
-      background: var(--navy);
-      color: #ffffff;
-      border-color: var(--navy);
-    }
-
-    .btn-export:hover {
-      background: var(--navy-dark);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .table-responsive {
-      width: 100%;
+    .table-scroll {
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1100px;
+    @media (max-width: 639px) {
+      input[type="date"], select {
+        font-size: 14px !important;
+      }
     }
-
-    thead th {
-      background: var(--navy);
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 11px 12px;
-      text-align: right;
-      border-right: 1px solid rgba(255, 255, 255, 0.12);
-      white-space: nowrap;
-    }
-
-    thead th:first-child {
-      text-align: left;
-      padding-left: 16px;
-    }
-
-    thead th:nth-child(2),
-    thead th:nth-child(9) {
-      text-align: center;
-    }
-
-    thead th.th-lowest {
-      background: #85641c;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      background: #ffffff;
-    }
-
-    tbody tr:hover {
-      background: #f8fafc;
-    }
-
-    tbody tr.row-main {
-      background: #fffdf5;
-      border-bottom: 2px solid #e7d496;
-    }
-
-    tbody td {
-      padding: 11px 12px;
-      font-size: 12.5px;
-      text-align: right;
-      vertical-align: middle;
-      border-right: 1px solid #f1f5f9;
-      white-space: nowrap;
-    }
-
-    tbody td:first-child {
-      text-align: left;
-      padding-left: 16px;
-      white-space: normal;
-      min-width: 340px;
-    }
-
-    tbody td:nth-child(2),
-    tbody td:nth-child(9) {
-      text-align: center;
-    }
-
-    tbody td.td-lowest {
-      background: var(--lowest-bg);
-      color: var(--lowest-fg);
-      font-weight: 700;
-    }
-
-    .tag {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-
-    .tag-platinum {
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #f59e0b;
-    }
-
-    .tag-core {
-      background: #e0f2fe;
-      color: #075985;
-    }
-
-    .tag-ext {
-      background: #f1f5f9;
-      color: #475569;
-    }
-
-    .prop-title {
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    .prop-meta {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 7px;
-    }
-
-    .chip {
-      font-size: 10.5px;
-      font-weight: 600;
-      background: var(--chip-bg);
-      color: var(--chip-fg);
-      border: 1px solid var(--chip-border);
-      padding: 2px 7px;
-      border-radius: 4px;
-    }
-
-    .pill {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 5px;
-      letter-spacing: 0.3px;
-    }
-
-    .pill-available {
-      background: var(--green-bg);
-      color: var(--green-fg);
-    }
-
-    .pill-estimated {
-      background: var(--amber-bg);
-      color: var(--amber-fg);
-    }
-
-    .spread-up {
-      color: var(--red-fg);
-      font-weight: 700;
-    }
-
-    .spread-down {
-      color: var(--green-fg);
-      font-weight: 700;
-    }
-
-    .spread-flat {
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .parity-pill {
-      display: inline-block;
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 6px;
-    }
-
-    .parity-ok {
-      background: var(--green-bg);
-      color: var(--green-fg);
-    }
-
-    .parity-alert {
-      background: var(--amber-bg);
-      color: var(--amber-fg);
-    }
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #E2E8F0; }
+    ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <div class="logo-box">
-          <div class="logo-top">PLATINUM</div>
-          <div class="logo-main">HOTEL</div>
-        </div>
-        <div class="title-wrap">
-          <h1>
-            Live Rate Shopper
-            <span id="syncBadge" class="badge-sync">● Synced + Cloud</span>
-          </h1>
-          <div id="subInfo" class="sub-info">
-            Platinum Hotel & Convention Hall Balikpapan • Menunggu sinkronisasi data...
+<body class="min-h-screen flex flex-col">
+
+  <!-- Corporate Blue Header -->
+  <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md safe-header pb-2.5">
+    <div class="max-w-[1540px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
+      <div class="flex items-center justify-between md:justify-start gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="bg-white rounded-xl px-2.5 py-1.5 flex items-center shadow-sm shrink-0">
+            <img
+              src="./logo.png"
+              alt="Platinum Hotel & Convention Hall Balikpapan"
+              class="h-8 sm:h-9 w-auto max-w-[130px] object-contain"
+              onerror="this.parentElement.style.display='none';"
+            />
+          </div>
+
+          <div class="min-w-0">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper</h1>
+            <span id="modeBadge" class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5">
+              <i data-lucide="database" class="w-3 h-3 shrink-0"></i>
+              <span id="modeBadgeText">Cache Ready</span>
+            </span>
           </div>
         </div>
       </div>
 
-      <div class="toolbar">
-        <button id="btnCheck" class="btn btn-check" type="button" onclick="checkOtaNow()">
-          <span id="checkIcon">↻</span>
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+        <button type="button" onclick="fetchLiveRates()" class="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 active:scale-[0.99] text-phb-blue text-xs font-bold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
+          <i data-lucide="refresh-cw" id="spinIcon" class="w-3.5 h-3.5 shrink-0"></i>
           <span>Check OTA Now</span>
         </button>
-        <button id="btnExport" class="btn btn-export" type="button" onclick="exportRateSheet()">
-          <span>⬇ Export Rate Sheet</span>
+
+        <button type="button" onclick="exportCSV()" class="flex items-center justify-center gap-1.5 bg-[#1B85B8] hover:bg-[#1673A0] active:scale-[0.99] text-white border border-white/25 text-xs font-semibold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>Export Rate Sheet</span>
         </button>
       </div>
     </div>
+  </header>
 
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Competitor Set Property (A)</th>
-            <th>Status (B)</th>
-            <th>Traveloka (C)</th>
-            <th>Tiket.com (D)</th>
-            <th>Agoda (E)</th>
-            <th>Booking.com (F)</th>
-            <th class="th-lowest">Lowest Rate (G)</th>
-            <th>Spread Avg (H)</th>
-            <th>Parity Check (I)</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr>
-            <td colspan="9" style="text-align:center; padding:26px; color:#64748b;">
-              Memuat data rate...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-[1540px] w-full mx-auto pt-3 sm:pt-4 safe-main space-y-3 sm:space-y-4">
 
-  <script>
-    const INITIAL_COMP_SET = [
-      {
-        id: 'phb',
-        name: 'Platinum Hotel & Convention Hall Balikpapan',
-        tier: 'PLATINUM',
-        location: 'Jl. Soekarno Hatta, Balikpapan',
-        sourceType: 'OTA',
-        isMain: true,
-        status: 'AVAILABLE',
-        ota: { traveloka: 898528, tiket: null, agoda: 889728, booking: 1025952 },
-        chips: [
-          { source: 'Platinum Hotel & Convention Hall Balikpapan', rate: 880000 },
-          { source: 'Agoda', rate: 889728 },
-          { source: 'Traveloka.com', rate: 898528 },
-          { source: 'klook', rate: 954510 },
-          { source: 'Booking.com', rate: 1025952 },
-          { source: 'Expedia.dk', rate: 1053254 },
-          { source: 'Hoteles.com', rate: 1053254 },
-          { source: 'Kiwi.com', rate: 1158316 },
-          { source: 'Reserving', rate: 1475520 }
-        ],
-        lowestRate: 880000,
-        parityStatus: 'Disparity 136,224'
-      },
-      { id: 'bluesky', name: 'Blue Sky Hotel Balikpapan', tier: 'CORE', location: 'Kebun Sayur, Balikpapan', sourceType: 'Benchmark Rate', status: 'ESTIMATED', ota: { traveloka: 780000, tiket: null, agoda: null, booking: null }, lowestRate: 780000, parityStatus: 'In Parity' },
-      { id: 'swissbel', name: 'Swiss-Belhotel Balikpapan', tier: 'CORE', location: 'Balikpapan Ocean Square (BOS)', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 2288000, tiket: null, agoda: null, booking: null }, lowestRate: 2288000, parityStatus: 'In Parity' },
-      { id: 'novotel', name: 'Novotel Balikpapan', tier: 'CORE', location: 'Jl. Brigjen Ery Suparjan', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 914868, tiket: null, agoda: null, booking: null }, lowestRate: 914868, parityStatus: 'In Parity' },
-      { id: 'grandjatra', name: 'Grand Jatra Hotel Balikpapan', tier: 'CORE', location: 'e-Walk / Balikpapan SuperBlock', sourceType: 'Benchmark Rate', status: 'ESTIMATED', ota: { traveloka: 1050000, tiket: null, agoda: null, booking: null }, lowestRate: 1050000, parityStatus: 'In Parity' },
-      { id: 'grandtjokro', name: 'Grand Tjokro Balikpapan', tier: 'CORE', location: 'Jl. Marsma R. Iswahyudi', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 529382, tiket: null, agoda: null, booking: null }, lowestRate: 529382, parityStatus: 'In Parity' },
-      { id: 'astara', name: 'Astara Hotel Balikpapan', tier: 'CORE', location: 'Jl. Jenderal Sudirman', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 849611, tiket: null, agoda: null, booking: null }, lowestRate: 849611, parityStatus: 'In Parity' },
-      { id: 'gransenyiur', name: 'Gran Senyiur Balikpapan', tier: 'EXT', location: 'Jl. ARS Moh. No. 1-7', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 694496, tiket: null, agoda: null, booking: null }, lowestRate: 694496, parityStatus: 'In Parity' },
-      { id: 'horisonultima', name: 'Horison Ultima Benua Balikpapan', tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'Benchmark Rate', status: 'ESTIMATED', ota: { traveloka: 470000, tiket: null, agoda: null, booking: null }, lowestRate: 470000, parityStatus: 'In Parity' },
-      { id: 'pentacity', name: 'Penta City Hotel Balikpapan', tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'Benchmark Rate', status: 'ESTIMATED', ota: { traveloka: 560000, tiket: null, agoda: null, booking: null }, lowestRate: 560000, parityStatus: 'In Parity' },
-      { id: 'goldentulip', name: 'Golden Tulip Balikpapan Hotel & Suites', tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 840576, tiket: null, agoda: null, booking: null }, lowestRate: 840576, parityStatus: 'In Parity' },
-      { id: 'dprima', name: "D'Prima Hotel Balikpapan", tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 305888, tiket: null, agoda: null, booking: null }, lowestRate: 305888, parityStatus: 'In Parity' },
-      { id: 'pacific', name: 'Pacific Hotel Balikpapan', tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'OTA', status: 'AVAILABLE', ota: { traveloka: 376438, tiket: null, agoda: null, booking: null }, lowestRate: 376438, parityStatus: 'In Parity' },
-      { id: 'sagita', name: 'Sagita Hotel Balikpapan', tier: 'EXT', location: 'Jl. Jenderal Sudirman', sourceType: 'Benchmark Rate', status: 'ESTIMATED', ota: { traveloka: 420000, tiket: null, agoda: null, booking: null }, lowestRate: 420000, parityStatus: 'In Parity' }
-    ];
+    <!-- Sub-Toolbar: Date, View Tabs & Filters -->
+    <section class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5 sm:gap-3">
+      <!-- Check-In Date Selector -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center justify-between sm:justify-start gap-2 text-xs">
+        <div class="flex items-center gap-1.5 text-slate-600 font-medium">
+          <i data-lucide="calendar" class="w-4 h-4 text-phb-blue shrink-0"></i>
+          <span>Check-In:</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="date" id="checkinInput" onchange="handleDateChange()" class="min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-phb-blue" />
+          <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg mono">-</span>
+        </div>
+      </div>
 
-    let state = {
-      rows: [],
-      marketAvg: null,
-      updatedAt: null
-    };
+      <!-- 4-Tab View Switcher -->
+      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-2 sm:flex sm:items-center gap-1 text-xs">
+        <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[36px] px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
+          Daily Rate & Parity
+        </button>
+        <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          7-Day Rate Grid
+        </button>
+        <button type="button" onclick="setViewMode('DASHBOARD')" id="viewDASHBOARD" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          Analytics & Reports
+        </button>
+        <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          History Log
+        </button>
+      </div>
 
-    function parseValidNumber(val) {
-      if (val === null || val === undefined || val === '') return null;
-      if (typeof val === 'number') return Number.isFinite(val) && val > 0 ? Math.round(val) : null;
-      const cleaned = String(val).replace(/[^\d-]/g, '');
-      const n = Number(cleaned);
-      return Number.isFinite(n) ? Math.round(n) : null;
-    }
+      <!-- Filters & Suggested BAR -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center gap-2 text-xs">
+        <div class="flex items-center gap-1 flex-1 min-w-[130px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Set:</span>
+          <select id="groupFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+            <option value="ALL">All Hotels</option>
+            <option value="CORE">Core Set</option>
+            <option value="EXTENDED">Extended Set</option>
+          </select>
+        </div>
 
-    function formatNumber(val) {
-      const n = parseValidNumber(val);
-      if (n === null) return '-';
-      return n.toLocaleString('en-US');
-    }
+        <div class="flex items-center gap-1 flex-1 min-w-[115px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Status:</span>
+          <select id="statusFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+            <option value="ALL">All Active</option>
+            <option value="LIVE">Live OTA</option>
+            <option value="ESTIMATED">Estimated</option>
+          </select>
+        </div>
 
-    function formatSpreadCell(spread) {
-      const n = parseValidNumber(spread);
-      if (n === null) return '-';
-      if (n > 0) return `<span class="spread-up">+${formatNumber(n)}</span>`;
-      if (n < 0) return `<span class="spread-down">-${formatNumber(Math.abs(n))}</span>`;
-      return `<span class="spread-flat">0</span>`;
-    }
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500 font-medium shrink-0">BAR:</span>
+          <select id="offsetSelect" onchange="renderActiveView()" class="mono min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
+            <option value="-25000">-25,000</option>
+            <option value="0" selected>0 (Parity)</option>
+            <option value="25000">+25,000</option>
+          </select>
+        </div>
 
-    function computeRowsWithSpread(rawRows, explicitAvg = null) {
-      const normalized = rawRows.map((item) => {
-        const ota = {
-          traveloka: parseValidNumber(item?.ota?.traveloka ?? item?.traveloka),
-          tiket: parseValidNumber(item?.ota?.tiket ?? item?.tiket),
-          agoda: parseValidNumber(item?.ota?.agoda ?? item?.agoda),
-          booking: parseValidNumber(item?.ota?.booking ?? item?.booking)
-        };
+        <div class="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1.5 sm:py-1">
+          <span class="text-amber-800 font-semibold">Suggested BAR:</span>
+          <span id="recommendedRateText" class="mono font-bold text-amber-900">IDR 0</span>
+        </div>
+      </div>
+    </section>
 
-        const rates = [ota.traveloka, ota.tiket, ota.agoda, ota.booking].filter((v) => v !== null && v > 0);
-        const lowestRate =
-          parseValidNumber(item?.lowestRate ?? item?.lowest_rate) ??
-          (rates.length ? Math.min(...rates) : null);
+    <!-- Alert Banner -->
+    <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
-        return {
-          ...item,
-          ota,
-          lowestRate
-        };
-      });
+    <!-- Executive Summary Card + Description Toggle -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3.5">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">RATE & PARITY INTELLIGENCE SUMMARY</h2>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-sky-50 text-phb-blue rounded border border-sky-200">PLATINUM BALIKPAPAN</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">AUTO OTA FEED</span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Automated OTA rate positioning, channel parity monitoring, and BAR recommendation for Platinum Hotel & Convention Hall Balikpapan.
+          </p>
+        </div>
 
-      const validLowestList = normalized
-        .map((r) => r.lowestRate)
-        .filter((v) => v !== null && v > 0);
+        <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 text-xs">
+          <button type="button" onclick="toggleDescriptionPanel()" id="descToggleBtn" class="min-h-[34px] inline-flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 text-phb-blue border border-sky-200 font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            <span id="descToggleText">Description</span>
+          </button>
 
-      const marketAvg =
-        parseValidNumber(explicitAvg) ??
-        (validLowestList.length
-          ? Math.round(validLowestList.reduce((sum, cur) => sum + cur, 0) / validLowestList.length)
-          : null);
+          <div>
+            <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
+            <select id="autoPollSelect" onchange="configureAutoPoll()" class="min-h-[34px] border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
+              <option value="0" selected>Manual (0 Quota)</option>
+              <option value="900000">Every 15 Mins</option>
+              <option value="1800000">Every 30 Mins</option>
+            </select>
+          </div>
+          <div class="text-right border-l border-slate-200 pl-3">
+            <span class="block text-[10px] font-semibold uppercase text-slate-400">Last Update</span>
+            <span id="lastUpdateText" class="mono text-xs font-bold text-phb-blue">--:--:-- WITA</span>
+          </div>
+        </div>
+      </div>
 
-      const rows = normalized.map((r) => {
-        const existingSpread = parseValidNumber(r.spreadAvg ?? r.spread_avg);
-        const spreadAvg =
-          existingSpread !== null
-            ? existingSpread
-            : r.lowestRate !== null && marketAvg !== null
-              ? r.lowestRate - marketAvg
-              : null;
+      <!-- 4 KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-3">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase text-amber-900">
+            <span>Platinum Rate Index</span>
+            <i data-lucide="trending-up" class="w-4 h-4 text-amber-700"></i>
+          </div>
+          <div id="summaryPlatinumRate" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
+          <div id="summaryRateIndexSub" class="text-[11px] text-slate-600 mt-0.5">vs Market Avg: -</div>
+        </div>
 
-        return {
-          ...r,
-          spreadAvg
-        };
-      });
+        <div class="rounded-xl border border-sky-200 bg-sky-50/50 p-3">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase text-phb-blue">
+            <span>Compset Avg & Spread</span>
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-phb-blue"></i>
+          </div>
+          <div id="summaryMarketAvg" class="mono text-lg font-extrabold text-phb-blue mt-1">IDR 0</div>
+          <div id="summaryLowestCompset" class="text-[11px] text-slate-600 mt-0.5">Lowest Compset: -</div>
+        </div>
 
-      return { rows, marketAvg };
-    }
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase text-emerald-800">
+            <span>OTA Channel Parity</span>
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-700"></i>
+          </div>
+          <div id="summaryParityScore" class="mono text-lg font-extrabold text-emerald-700 mt-1">100% Parity</div>
+          <div id="summaryDisparityCount" class="text-[11px] text-slate-600 mt-0.5">0 Disparity Alerts</div>
+        </div>
 
-    function render() {
-      const tbody = document.getElementById('tbody');
-      const { rows, marketAvg, updatedAt } = state;
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase text-slate-700">
+            <span>BAR Strategy & Logs</span>
+            <i data-lucide="layers" class="w-4 h-4 text-slate-600"></i>
+          </div>
+          <div id="summarySuggestedBar" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
+          <div id="summaryTxnCount" class="text-[11px] text-slate-600 mt-0.5">0 Logged Scans</div>
+        </div>
+      </div>
 
-      if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">Tidak ada data.</td></tr>`;
-        return;
-      }
+      <!-- Expandable Dashboard Description -->
+      <div id="dashboardDescriptionBox" class="hidden rounded-xl border border-sky-200 bg-sky-50/60 p-3.5 sm:p-4 text-xs text-slate-700 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-sky-200/80 pb-2">
+          <div class="flex items-center gap-2 font-extrabold text-phb-blue uppercase tracking-wide text-[11px] sm:text-xs">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Dashboard Description & Metric Definitions</span>
+          </div>
+          <button type="button" onclick="toggleDescriptionPanel()" class="text-[11px] font-semibold text-phb-blue hover:underline">Hide</button>
+        </div>
 
-      tbody.innerHTML = rows
-        .map((r) => {
-          const tier = String(r.tier || 'EXT').toUpperCase();
-          const tierClass = tier === 'PLATINUM' ? 'tag-platinum' : tier === 'CORE' ? 'tag-core' : 'tag-ext';
-          const isAvailable = String(r.status || '').toUpperCase() === 'AVAILABLE';
-          const statusClass = isAvailable ? 'pill-available' : 'pill-estimated';
-          const statusLabel = r.status || (isAvailable ? 'AVAILABLE' : 'ESTIMATED');
-          const subText = `${r.location || 'Balikpapan'} • ${r.sourceType || (isAvailable ? 'OTA' : 'Benchmark Rate')}`;
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 leading-relaxed">
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Platinum Rate Index:</strong> Automatically pulls Platinum Hotel & Convention Hall Balikpapan's live OTA rate and compares it against the competitor set average (100% = equal to market average).
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Compset Avg & Spread:</strong> Displays the average daily rate across tracked Balikpapan competitor hotels and identifies the lowest-priced competitor property.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">OTA Channel Parity:</strong> Tracks rate consistency across Traveloka, Tiket.com, Agoda, and Booking.com, flagging disparity alerts when channel spreads reach IDR 35,000 or more.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">BAR Strategy & Logs:</strong> Calculates the suggested Best Available Rate (rounded to IDR 5,000) and displays total recorded OTA scan snapshots.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Zero Sold-Out Mode (AVAILABLE vs ESTIMATED):</strong> Properties returning live OTA offers display <strong>AVAILABLE</strong>, while dates without open OTA listings carry forward the last known rate as <strong>ESTIMATED</strong>.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Cache-First Sync:</strong> Switching dates loads saved snapshots from Supabase (0 API quota); clicking <strong>Check OTA Now</strong> fetches fresh live OTA rates and updates cloud logs.
+          </div>
+        </div>
+      </div>
+    </section>
 
-          const chipsHtml = Array.isArray(r.chips) && r.chips.length
-            ? `<div class="chips">${r.chips.map((c) => `<span class="chip">${c.source}: ${formatNumber(c.rate)}</span>`).join('')}</div>`
-            : '';
-
-          const parityText = r.parityStatus || r.parity_status || 'In Parity';
-          const parityClass = parityText.toLowerCase().includes('disparity') ? 'parity-alert' : 'parity-ok';
-
-          return `
-            <tr class="${r.isMain ? 'row-main' : ''}">
-              <td>
-                <div>
-                  <span class="tag ${tierClass}">${tier}</span>
-                  <span class="prop-title">${r.name}</span>
-                </div>
-                <div class="prop-meta">${subText}</div>
-                ${chipsHtml}
-              </td>
-              <td><span class="pill ${statusClass}">${statusLabel}</span></td>
-              <td>${formatNumber(r.ota.traveloka)}</td>
-              <td>${formatNumber(r.ota.tiket)}</td>
-              <td>${formatNumber(r.ota.agoda)}</td>
-              <td>${formatNumber(r.ota.booking)}</td>
-              <td class="td-lowest">${formatNumber(r.lowestRate)}</td>
-              <td>${formatSpreadCell(r.spreadAvg)}</td>
-              <td><span class="parity-pill ${parityClass}">${parityText}</span></td>
+    <!-- VIEW 1: DAILY RATE & PARITY TABLE -->
+    <section id="panelDAILY" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="table-scroll">
+        <table class="w-full min-w-[920px] text-left border-collapse">
+          <thead>
+            <tr class="text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200">
+              <th colspan="2" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">PROPERTY & OTA STATUS</th>
+              <th colspan="4" class="py-2.5 px-4 bg-sky-50 text-phb-blue text-center border-r border-slate-200">ONLINE TRAVEL AGENT (OTA) PUBLIC RATES</th>
+              <th colspan="3" class="py-2.5 px-4 bg-emerald-50 text-emerald-800 text-center">MARKET BENCHMARK & PARITY ALERT</th>
             </tr>
-          `;
-        })
-        .join('');
+            <tr class="bg-phb-blue text-white text-[11px] font-bold">
+              <th class="py-3 px-4 border-r border-white/15">Competitor Set Property (A)</th>
+              <th class="py-3 px-2.5 text-center border-r border-white/15">Status (B)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (C)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (D)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (E)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (F)</th>
+              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (G)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Spread Avg (H)</th>
+              <th class="py-3 px-3 text-center">Parity Check (I)</th>
+            </tr>
+          </thead>
+          <tbody id="rateTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
 
-      const timeLabel = updatedAt
-        ? new Date(updatedAt).toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA'
-        : 'Baseline Snapshot';
+    <!-- VIEW 2: 7-DAY RATE GRID -->
+    <section id="panelGRID7" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 bg-sky-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div>
+          <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
+          <span class="text-slate-500 ml-2">Click a date to load cached data or click <strong>Scan 7 Days</strong>.</span>
+        </div>
+        <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
+          Scan 7 Days
+        </button>
+      </div>
+      <div class="table-scroll">
+        <table class="w-full min-w-[760px] text-left border-collapse">
+          <thead id="grid7Head" class="bg-phb-blue text-white text-[11px] font-bold"></thead>
+          <tbody id="grid7Body" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
 
-      const avgLabel = marketAvg !== null ? `IDR ${formatNumber(marketAvg)}` : '-';
-      document.getElementById('subInfo').textContent =
-        `Platinum Hotel & Convention Hall Balikpapan • Market Avg: ${avgLabel} • Last Update: ${timeLabel}`;
-    }
+    <!-- VIEW 3: ANALYTICS & REPORTS -->
+    <section id="panelDASHBOARD" class="hidden space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Total Recorded Transactions</span>
+          <span id="dashTotalTxns" class="mono text-xl font-extrabold text-slate-900 mt-1 block">0</span>
+          <span id="dashTxnDates" class="text-[11px] text-slate-500 mt-0.5 block">Across 0 check-in dates</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Platinum Rate</span>
+          <span id="dashAvgPlatinum" class="mono text-xl font-extrabold text-amber-700 mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">From logged OTA scans</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Compset Rate</span>
+          <span id="dashAvgCompset" class="mono text-xl font-extrabold text-phb-blue mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">Market benchmark across scans</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Suggested BAR</span>
+          <span id="dashAvgBar" class="mono text-xl font-extrabold text-emerald-700 mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">Rounded to IDR 5,000</span>
+        </div>
+      </div>
 
-    function setSyncBadge(text, isError = false) {
-      const badge = document.getElementById('syncBadge');
-      badge.textContent = text;
-      badge.className = isError ? 'badge-sync err' : 'badge-sync';
-    }
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 uppercase">Transaction Rate & BAR Trend</h3>
+              <p class="text-[11px] text-slate-500">Platinum Rate vs Compset Avg vs Suggested BAR</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-phb-blue border border-sky-200">IDR</span>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="rateTrendChart"></canvas>
+          </div>
+        </div>
 
-    async function checkOtaNow() {
-      const btn = document.getElementById('btnCheck');
-      const icon = document.getElementById('checkIcon');
-      btn.disabled = true;
-      icon.textContent = '⏳';
-      setSyncBadge('↻ Checking OTA...');
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 uppercase">OTA Channel Average</h3>
+              <p class="text-[11px] text-slate-500">Average rate across Traveloka, Tiket.com, Agoda & Booking.com</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-700 border border-emerald-200">OTA AVG</span>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="otaChannelChart"></canvas>
+          </div>
+        </div>
+      </div>
 
-      try {
-        const res = await fetch(`/api/live-rates?_t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const payload = await res.json();
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>
+            <strong class="text-slate-800 uppercase">Transaction Report Ledger</strong>
+            <span class="text-slate-500 ml-2">Complete audit of OTA rate shopping scans & parity spread</span>
+          </div>
+          <button type="button" onclick="exportTransactionReportCSV()" class="min-h-[34px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1 rounded-lg transition touch-manipulation">
+            Export Transaction Report
+          </button>
+        </div>
+        <div class="table-scroll">
+          <table class="w-full min-w-[820px] text-left border-collapse">
+            <thead>
+              <tr class="bg-phb-blue text-white text-[11px] font-bold">
+                <th class="py-3 px-4">Scan Time</th>
+                <th class="py-3 px-3">Check-In</th>
+                <th class="py-3 px-3 text-right">Platinum Rate</th>
+                <th class="py-3 px-3 text-right">Compset Avg</th>
+                <th class="py-3 px-3 text-right">Spread vs Avg</th>
+                <th class="py-3 px-3 text-right">Suggested BAR</th>
+                <th class="py-3 px-3 text-center">Active Hotels</th>
+                <th class="py-3 px-4">Parity Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardReportBody" class="divide-y divide-slate-200 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-        if (payload && Array.isArray(payload.properties) && payload.properties.length > 0) {
-          const mergedByName = INITIAL_COMP_SET.map((baseItem) => {
-            const matched = payload.properties.find(
-              (p) => String(p.name || p.property_name || '').toLowerCase().includes(baseItem.name.toLowerCase().split(' ')[0])
-            );
-            if (!matched) return baseItem;
-            return {
-              ...baseItem,
-              ...matched,
-              ota: {
-                traveloka: matched.ota?.traveloka ?? matched.traveloka ?? baseItem.ota.traveloka,
-                tiket: matched.ota?.tiket ?? matched.tiket ?? baseItem.ota.tiket,
-                agoda: matched.ota?.agoda ?? matched.agoda ?? baseItem.ota.agoda,
-                booking: matched.ota?.booking ?? matched.booking ?? baseItem.ota.booking
-              },
-              lowestRate: matched.lowestRate ?? matched.lowest_rate ?? baseItem.lowestRate,
-              spreadAvg: matched.spreadAvg ?? matched.spread_avg ?? null
-            };
-          });
+    <!-- VIEW 4: HISTORY LOG -->
+    <section id="panelHISTORY" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 bg-emerald-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div>
+          <strong class="text-emerald-900 uppercase">Historical Rate Log & Trend Snapshot</strong>
+          <span class="text-slate-500 ml-2">Storage: Supabase Cloud + Local</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="syncHistoryFromSupabase()" class="min-h-[36px] bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
+            Load Supabase (0 Quota)
+          </button>
+          <button type="button" onclick="clearLocalHistory()" class="min-h-[36px] bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
+            Clear Local Log
+          </button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="w-full min-w-[780px] text-left border-collapse">
+          <thead>
+            <tr class="bg-phb-blue text-white text-[11px] font-bold">
+              <th class="py-3 px-4">Scan Time (WITA)</th>
+              <th class="py-3 px-3">Check-In</th>
+              <th class="py-3 px-3">Platinum Status</th>
+              <th class="py-3 px-3 text-right">Lowest Platinum</th>
+              <th class="py-3 px-3 text-right">Competitor Avg</th>
+              <th class="py-3 px-3 text-right">Suggested BAR</th>
+              <th class="py-3 px-3 text-center">Active / Total</th>
+              <th class="py-3 px-4">Alert Summary</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
 
-          const computed = computeRowsWithSpread(mergedByName, payload.marketAvg ?? null);
-          state = {
-            rows: computed.rows,
-            marketAvg: computed.marketAvg,
-            updatedAt: payload.updatedAt || new Date().toISOString()
-          };
-        } else {
-          const computed = computeRowsWithSpread(INITIAL_COMP_SET, null);
-          state = {
-            rows: computed.rows,
-            marketAvg: computed.marketAvg,
-            updatedAt: new Date().toISOString()
-          };
-        }
+  </main>
 
-        render();
-        setSyncBadge('● Synced + Cloud', false);
-      } catch (err) {
-        console.warn('Fallback to baseline data:', err.message);
-        const computed = computeRowsWithSpread(INITIAL_COMP_SET, null);
-        state = {
-          rows: computed.rows,
-          marketAvg: computed.marketAvg,
-          updatedAt: state.updatedAt || new Date().toISOString()
-        };
-        render();
-        setSyncBadge('● Synced + Cloud', false);
-      } finally {
-        btn.disabled = false;
-        icon.textContent = '↻';
-      }
-    }
-
-    function exportRateSheet() {
-      if (!state.rows.length) return;
-
-      const headers = [
-        'Competitor Set Property',
-        'Tier',
-        'Location',
-        'Status',
-        'Traveloka',
-        'Tiket.com',
-        'Agoda',
-        'Booking.com',
-        'Lowest Rate',
-        'Spread Avg',
-        'Parity Check'
-      ];
-
-      const csvLines = [
-        headers.join(','),
-        ...state.rows.map((r) => [
-          `"${String(r.name || '').replace(/"/g, '""')}"`,
-          r.tier || '',
-          `"${String(r.location || '').replace(/"/g, '""')}"`,
-          r.status || '',
-          r.ota?.traveloka ?? '',
-          r.ota?.tiket ?? '',
-          r.ota?.agoda ?? '',
-          r.ota?.booking ?? '',
-          r.lowestRate ?? '',
-          r.spreadAvg ?? '',
-          `"${String(r.parityStatus || '').replace(/"/g, '""')}"`
-        ].join(','))
-      ];
-
-      const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `PHB_Live_Rate_Shopper_${new Date().toISOString().slice(0, 10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // Render awal langsung dengan data baseline dan kalkulasi Spread Avg lengkap
-    const initialComputed = computeRowsWithSpread(INITIAL_COMP_SET, null);
-    state = {
-      rows: initialComputed.rows,
-      marketAvg: initialComputed.marketAvg,
-      updatedAt: new Date().toISOString()
-    };
-    render();
-  </script>
+  <script src="./app.js"></script>
 </body>
 </html>
