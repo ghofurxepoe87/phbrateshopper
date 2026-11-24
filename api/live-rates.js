@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=4+star+hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;
+    const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=const queryUrl = `https://serpapi.com/search.json?engine=google_hotels&q=hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;n&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${apiKey}`;
     const response = await fetch(queryUrl);
     const json = await response.json();
 
