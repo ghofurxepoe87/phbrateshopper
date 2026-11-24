@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BPN 4★ Live Rate Shopper — Platinum Hotel Balikpapan</title>
+  <title>BPN 4★ Live Rate Shopper (STAAH Edition) — Platinum Hotel Balikpapan</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -41,11 +41,9 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Corporate Blue Header (Matching PHB Breakfast Reconciliation) -->
+  <!-- Corporate Blue Header -->
   <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md px-4 py-2.5">
-    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
-      
-      <!-- Left: Platinum Logo Card + Title + Badges -->
+    <div class="max-w-[1480px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3">
         <div class="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-sm">
           <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
@@ -61,16 +59,15 @@
         <div class="flex flex-wrap items-center gap-2">
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">BPN 4★ Live Rate Shopper</h1>
           <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-white/20 text-white">
-            FBM / REV
+            STAAH MODE
           </span>
           <span id="modeBadge" class="flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm">
             <i data-lucide="cloud-check" class="w-3 h-3"></i>
-            <span id="modeBadgeText">Local Ready</span>
+            <span id="modeBadgeText">Connecting...</span>
           </span>
         </div>
       </div>
 
-      <!-- Right: Action Buttons (Amber, White, Teal/Blue) -->
       <div class="flex flex-wrap items-center gap-2">
         <button onclick="openConfigModal()" class="flex items-center gap-1.5 bg-phb-amber hover:bg-amber-400 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
           <i data-lucide="plug" class="w-3.5 h-3.5"></i>
@@ -91,42 +88,55 @@
   </header>
 
   <!-- Main Workspace -->
-  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 py-4 space-y-4">
+  <main class="flex-1 max-w-[1480px] w-full mx-auto px-4 py-4 space-y-4">
 
-    <!-- Sub-Toolbar Filter Pills (Matching Reference Row 2) -->
+    <!-- Sub-Toolbar: Date, View Mode, Board Filter, Strategy -->
     <section class="flex flex-wrap items-center justify-between gap-3">
-      
-      <!-- Pill 1: Check-in Date -->
       <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-2.5 text-xs">
         <div class="flex items-center gap-1.5 text-slate-500 font-medium">
           <i data-lucide="calendar" class="w-3.5 h-3.5 text-phb-blue"></i>
           <span>Check-In:</span>
         </div>
-        <input type="date" id="checkinInput" onchange="handleDateOrFilterChange()" class="border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-phb-blue" />
-        <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg">
-          -
-        </span>
+        <input type="date" id="checkinInput" onchange="handleDateChange()" class="border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-phb-blue" />
+        <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg">-</span>
       </div>
 
-      <!-- Pill 2: Status Filter Tabs -->
+      <!-- View Tabs (Daily Parity / 7-Day Grid / History Log) -->
       <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm flex items-center gap-1 text-xs">
-        <button onclick="setFilterTab('ALL')" id="tabALL" class="px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition">
-          Semua Properti (4★)
+        <button onclick="setViewMode('DAILY')" id="viewDAILY" class="px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition">
+          Daily Rate & Parity
         </button>
-        <button onclick="setFilterTab('AVAILABLE')" id="tabAVAILABLE" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
-          Tersedia (Open)
+        <button onclick="setViewMode('GRID7')" id="viewGRID7" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
+          7-Day Rate Grid
         </button>
-        <button onclick="setFilterTab('SOLD_OUT')" id="tabSOLD_OUT" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
-          Sold Out
+        <button onclick="setViewMode('HISTORY')" id="viewHISTORY" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
+          History Log
         </button>
       </div>
 
-      <!-- Pill 3: Strategy & Simulator Controls -->
-      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-3 text-xs">
-        <div class="flex items-center gap-1.5">
-          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-phb-blue"></i>
-          <span class="text-slate-500 font-medium">Posisi BAR:</span>
-          <select id="offsetSelect" onchange="renderDashboard()" class="mono border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
+      <!-- Board Basis & Status Filter + BAR Strategy -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-2.5 text-xs">
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500 font-medium">Board:</span>
+          <select id="boardFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+            <option value="ALL">Semua (RO/BB)</option>
+            <option value="BB">Breakfast (BB)</option>
+            <option value="RO">Room Only (RO)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500 font-medium">Status:</span>
+          <select id="statusFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+            <option value="ALL">Semua</option>
+            <option value="AVAILABLE">Open</option>
+            <option value="SOLD_OUT">Sold Out</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500 font-medium">BAR:</span>
+          <select id="offsetSelect" onchange="renderActiveView()" class="mono border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
             <option value="-25000">-25,000</option>
             <option value="0" selected>0 (Parity)</option>
             <option value="25000">+25,000</option>
@@ -134,17 +144,16 @@
         </div>
 
         <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1">
-          <span class="text-amber-800 font-semibold">Rekomendasi:</span>
+          <span class="text-amber-800 font-semibold">Saran BAR:</span>
           <span id="recommendedRateText" class="mono font-bold text-amber-900">Rp 0</span>
         </div>
-
-        <button onclick="toggleOwnSoldOutDemo()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold px-2.5 py-1 rounded-lg transition">
-          Simulasi Sold Out
-        </button>
       </div>
     </section>
 
-    <!-- Header Summary Card (Matching "PHB DAILY BREAKFAST SHEET" Card) -->
+    <!-- Alert Banner (API error or Parity/Sold-Out Alert) -->
+    <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
+
+    <!-- Header Summary Card -->
     <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
         <div class="w-11 h-11 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-phb-blue">
@@ -154,15 +163,16 @@
           <div class="flex flex-wrap items-center gap-2">
             <h2 class="text-sm font-extrabold tracking-wide text-slate-800 uppercase">PHB COMPETITOR RATE & OTA PARITY SHEET</h2>
             <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded border border-slate-200">BALIKPAPAN 4★</span>
+            <span id="soldOutLiftBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded border border-amber-300"></span>
           </div>
           <p class="text-xs text-slate-500 mt-1">
-            Status Platinum: <strong id="summaryOwnStatus" class="text-rose-600">SOLD OUT</strong>
+            Status Platinum: <strong id="summaryOwnStatus" class="text-slate-700">-</strong>
             <span class="mx-1.5 text-slate-300">|</span>
-            Kompetitor Open: <strong id="summaryOpenCount" class="text-emerald-600">4</strong> / <strong id="summaryTotalComp" class="text-slate-700">5</strong> Hotel
+            Kompetitor Open: <strong id="summaryOpenCount" class="text-emerald-600">0</strong> / <strong id="summaryTotalComp" class="text-slate-700">5</strong> Hotel
             <span class="mx-1.5 text-slate-300">|</span>
             Rata-Rata Pasar: <strong id="summaryMarketAvg" class="mono text-phb-blue">Rp 0</strong>
             <span class="mx-1.5 text-slate-300">|</span>
-            Termurah: <strong id="summaryLowestComp" class="mono text-rose-600">Rp 0</strong>
+            Termurah: <strong id="summaryLowestComp" class="mono text-rose-600">-</strong>
           </p>
         </div>
       </div>
@@ -171,9 +181,9 @@
         <div>
           <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
           <select id="autoPollSelect" onchange="configureAutoPoll()" class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
-            <option value="0">Manual</option>
-            <option value="300000">Tiap 5 Menit</option>
+            <option value="0">Manual (Hemat Kuota)</option>
             <option value="900000">Tiap 15 Menit</option>
+            <option value="1800000">Tiap 30 Menit</option>
           </select>
         </div>
         <div class="text-right border-l border-slate-200 pl-3">
@@ -183,34 +193,33 @@
       </div>
     </section>
 
-    <!-- Multi-Color Grouped Table (Matching Reference Table Design) -->
-    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <!-- VIEW 1: DAILY RATE & PARITY TABLE -->
+    <section id="panelDAILY" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <!-- Top Pastel Category Group Headers -->
             <tr class="text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200">
-              <th colspan="2" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
-                PROPERTY & OTA STATUS
+              <th colspan="3" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
+                PROPERTY, BOARD & OTA STATUS
               </th>
               <th colspan="4" class="py-2.5 px-4 bg-sky-50 text-phb-blue text-center border-r border-slate-200">
                 ONLINE TRAVEL AGENT (OTA) PUBLIC RATES
               </th>
-              <th colspan="2" class="py-2.5 px-4 bg-emerald-50 text-emerald-800 text-center">
-                MARKET BENCHMARK & PARITY
+              <th colspan="3" class="py-2.5 px-4 bg-emerald-50 text-emerald-800 text-center">
+                MARKET BENCHMARK & PARITY ALERT
               </th>
             </tr>
-
-            <!-- Main Corporate Blue Column Headers -->
             <tr class="bg-phb-blue text-white text-[11px] font-bold">
               <th class="py-3 px-4 border-r border-white/15">Properti Hotel Bintang 4 (A)</th>
-              <th class="py-3 px-3 text-center border-r border-white/15">Status OTA (B)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (C)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (D)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (E)</th>
-              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (F)</th>
-              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (G)</th>
-              <th class="py-3 px-4 text-right">Spread vs Avg (H)</th>
+              <th class="py-3 px-2.5 text-center border-r border-white/15">Board (B)</th>
+              <th class="py-3 px-2.5 text-center border-r border-white/15">Status (C)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (D)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (E)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (F)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (G)</th>
+              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (H)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Spread Avg (I)</th>
+              <th class="py-3 px-3 text-center">Parity Check (J)</th>
             </tr>
           </thead>
           <tbody id="rateTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
@@ -218,161 +227,106 @@
       </div>
     </section>
 
-  </main>
-
-  <!-- API & Serverless Code Modal -->
-  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-      <div class="px-5 py-4 bg-phb-blue text-white flex items-center justify-between">
+    <!-- VIEW 2: 7-DAY RATE GRID -->
+    <section id="panelGRID7" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 bg-sky-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>
-          <h3 class="text-base font-bold">Konfigurasi Live API (`/api/live-rates`) & Panduan</h3>
-          <p class="text-xs text-sky-100">Hubungkan ke backend Vercel agar status Sold Out & tarif OTA terbaca otomatis.</p>
+          <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
+          <span class="text-slate-500 ml-2">Klik tanggal untuk memuat data ke tampilan harian atau klik <strong>Scan 7 Hari</strong>.</span>
         </div>
-        <button onclick="closeConfigModal()" class="text-white/80 hover:text-white p-1">
-          <i data-lucide="x" class="w-5 h-5"></i>
+        <button onclick="scanNext7Days()" id="scan7Btn" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition">
+          Scan 7 Hari (Pakai Kuota)
         </button>
       </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead id="grid7Head" class="bg-phb-blue text-white text-[11px] font-bold"></thead>
+          <tbody id="grid7Body" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
 
-      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
-          <label for="apiUrlInput" class="block font-bold text-phb-blue uppercase tracking-wider">
-            1. URL Backend Vercel (`/api/live-rates`)
-          </label>
-          <div class="flex flex-col sm:flex-row gap-2">
-            <input type="url" id="apiUrlInput" placeholder="https://rateshopper.ghofurapp.site/api/live-rates" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:border-phb-blue focus:outline-none" />
-            <button onclick="saveApiConfig()" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-4 py-2 rounded-lg transition shrink-0">
-              Simpan & Tes Live
-            </button>
-            <button onclick="resetToDemo()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-3 py-2 rounded-lg transition shrink-0">
-              Mode Lokal
-            </button>
-          </div>
-          <p id="configFeedback" class="text-[11px] text-slate-500"></p>
-        </div>
-
+    <!-- VIEW 3: HISTORY LOG -->
+    <section id="panelHISTORY" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 bg-emerald-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="font-bold text-slate-800">2. Kode Serverless Vercel (`/api/live-rates.js`)</span>
-            <button onclick="copyCode('serverlessSnippet')" class="text-[11px] bg-phb-amber hover:bg-amber-400 text-slate-900 font-bold px-2.5 py-1 rounded">
-              Salin Kode
-            </button>
-          </div>
-          <pre id="serverlessSnippet" class="mono bg-slate-900 text-slate-100 rounded-xl p-3.5 overflow-x-auto text-[11px] leading-relaxed">export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  const checkin = req.query.checkin || new Date(Date.now() + 86400000).toISOString().split('T')[0];
-  const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
-
-  const tracked = [
-    { id: 'platinum', matchKey: 'platinum', name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta', isOwn: true },
-    { id: 'swissbel', matchKey: 'swiss-belhotel', name: 'Swiss-Belhotel Balikpapan', area: 'Balikpapan Ocean Square', isOwn: false },
-    { id: 'fourpoints', matchKey: 'four points', name: 'Four Points by Sheraton Balikpapan', area: 'Sepinggan', isOwn: false },
-    { id: 'aston', matchKey: 'aston', name: 'ASTON Balikpapan Hotel & Residence', area: 'Jl. Jenderal Sudirman', isOwn: false },
-    { id: 'bluesky', matchKey: 'blue sky', name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur', isOwn: false },
-    { id: 'novotel', matchKey: 'novotel', name: 'Novotel Balikpapan', area: 'Jl. Brigjen Ery Suparjan', isOwn: false }
-  ];
-
-  if (!process.env.SERPAPI_KEY) {
-    return res.status(400).json({ error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.' });
-  }
-
-  try {
-    const apiUrl = `https://serpapi.com/search.json?engine=google_hotels&q=4+star+hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${process.env.SERPAPI_KEY}`;
-    const response = await fetch(apiUrl);
-    const json = await response.json();
-    const props = json.properties || [];
-
-    const hotels = tracked.map(item => {
-      const found = props.find(p => (p.name || '').toLowerCase().includes(item.matchKey));
-      const lowest = found?.rate_per_night?.extracted_lowest || 0;
-      if (!found || !lowest) {
-        return { ...item, status: 'SOLD_OUT', lowest_rate: 0, ota_breakdown: {} };
-      }
-      const ota = {};
-      (found.prices || []).forEach(p => {
-        const src = (p.source || '').toLowerCase();
-        const val = p.rate_per_night?.extracted_lowest || 0;
-        if (src.includes('traveloka')) ota.traveloka = val;
-        if (src.includes('tiket')) ota.tiket = val;
-        if (src.includes('agoda')) ota.agoda = val;
-        if (src.includes('booking')) ota.booking = val;
-      });
-      return { ...item, status: 'AVAILABLE', lowest_rate: lowest, ota_breakdown: ota };
-    });
-
-    return res.status(200).json({ checkin, fetched_at: new Date().toISOString(), hotels });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-}</pre>
+          <strong class="text-emerald-900 uppercase">Historical Rate Log & Trend Snapshot</strong>
+          <span id="supabaseSyncStatus" class="text-slate-500 ml-2">Penyimpanan: Local Browser</span>
         </div>
+        <div class="flex items-center gap-2">
+          <button onclick="syncHistoryFromSupabase()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg">
+            Muat Supabase
+          </button>
+          <button onclick="clearLocalHistory()" class="bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg">
+            Reset Log Lokal
+          </button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-phb-blue text-white text-[11px] font-bold">
+              <th class="py-3 px-4">Waktu Scan (WITA)</th>
+              <th class="py-3 px-3">Check-In</th>
+              <th class="py-3 px-3">Status Platinum</th>
+              <th class="py-3 px-3 text-right">Lowest Platinum</th>
+              <th class="py-3 px-3 text-right">Avg Kompetitor</th>
+              <th class="py-3 px-3 text-right">Saran BAR</th>
+              <th class="py-3 px-3 text-center">Open / Total</th>
+              <th class="py-3 px-4">Alert Ringkas</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Config Modal (Vercel Endpoint + Optional Supabase History) -->
+  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl text-xs text-slate-700">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-sm font-bold text-slate-900">Konfigurasi Endpoint & Supabase History</h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Vercel Serverless Endpoint</label>
+          <input type="url" id="apiUrlInput" placeholder="/api/live-rates" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900" />
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+          <div class="font-bold text-phb-blue">Supabase History Sync (Opsional)</div>
+          <p class="text-[11px] text-slate-500">
+            Jika ingin menyimpan riwayat ke tabel <code class="font-bold">rate_shop_logs</code> (kolom: <code class="font-bold">id</code>, <code class="font-bold">checkin_date</code>, <code class="font-bold">fetched_at</code>, <code class="font-bold">market_avg</code>, <code class="font-bold">recommended_bar</code>, <code class="font-bold">payload</code>):
+          </p>
+          <input type="url" id="sbUrlInput" placeholder="https://xxxx.supabase.co" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900" />
+          <input type="password" id="sbKeyInput" placeholder="Supabase Anon Public Key" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-900" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 text-slate-600">Batal</button>
+        <button onclick="saveConfig()" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-4 py-2 rounded-lg">Simpan & Muat</button>
       </div>
     </div>
   </div>
 
   <script>
-    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    document.getElementById('checkinInput').value = tomorrowStr;
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('checkinInput').value = todayStr;
 
-    const initialSampleHotels = [
-      {
-        id: 'platinum',
-        name: 'Platinum Hotel & Convention Hall Balikpapan',
-        area: 'Jl. Soekarno Hatta, Balikpapan',
-        isOwn: true,
-        status: 'SOLD_OUT',
-        lowest_rate: 0,
-        ota_breakdown: {}
-      },
-      {
-        id: 'swissbel',
-        name: 'Swiss-Belhotel Balikpapan',
-        area: 'Balikpapan Ocean Square (BOS)',
-        isOwn: false,
-        status: 'AVAILABLE',
-        lowest_rate: 840000,
-        ota_breakdown: { traveloka: 860000, tiket: 855000, agoda: 840000, booking: 865000 }
-      },
-      {
-        id: 'fourpoints',
-        name: 'Four Points by Sheraton Balikpapan',
-        area: 'Sepinggan / Airport Corridor',
-        isOwn: false,
-        status: 'AVAILABLE',
-        lowest_rate: 875000,
-        ota_breakdown: { traveloka: 890000, tiket: 885000, agoda: 875000, booking: 895000 }
-      },
-      {
-        id: 'aston',
-        name: 'ASTON Balikpapan Hotel & Residence',
-        area: 'Jl. Jenderal Sudirman',
-        isOwn: false,
-        status: 'AVAILABLE',
-        lowest_rate: 798000,
-        ota_breakdown: { traveloka: 810000, tiket: 815000, agoda: 798000, booking: 820000 }
-      },
-      {
-        id: 'bluesky',
-        name: 'Blue Sky Hotel Balikpapan',
-        area: 'Jl. Letjen Suprapto, Kebun Sayur',
-        isOwn: false,
-        status: 'SOLD_OUT',
-        lowest_rate: 0,
-        ota_breakdown: {}
-      },
-      {
-        id: 'novotel',
-        name: 'Novotel Balikpapan',
-        area: 'Jl. Brigjen Ery Suparjan',
-        isOwn: false,
-        status: 'AVAILABLE',
-        lowest_rate: 855000,
-        ota_breakdown: { traveloka: 875000, tiket: 870000, agoda: 855000, booking: 880000 }
-      }
-    ];
+    const defaultEndpoint = window.location.protocol.startsWith('http') ? '/api/live-rates' : '';
+    let apiEndpoint = localStorage.getItem('bpn_vercel_endpoint') || defaultEndpoint;
+    let sbUrl = localStorage.getItem('bpn_sb_url') || '';
+    let sbKey = localStorage.getItem('bpn_sb_key') || '';
 
-    let currentHotels = JSON.parse(JSON.stringify(initialSampleHotels));
-    let activeStatusFilter = 'ALL';
-    let apiEndpoint = localStorage.getItem('bpn_safe_live_endpoint') || '';
+    let currentView = 'DAILY';
+    let currentHotels = [];
+    let dateSnapshots = JSON.parse(localStorage.getItem('bpn_date_snapshots') || '{}');
+    let historyLogs = JSON.parse(localStorage.getItem('bpn_history_logs') || '[]');
     let pollTimer = null;
 
     function formatNum(amount) {
@@ -393,148 +347,263 @@
       }) + ' WITA';
     }
 
-    function setFilterTab(filterVal) {
-      activeStatusFilter = filterVal;
-      ['ALL', 'AVAILABLE', 'SOLD_OUT'].forEach(key => {
-        const btn = document.getElementById('tab' + key);
-        if (key === filterVal) {
-          btn.className = 'px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition';
-        } else {
-          btn.className = 'px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition';
-        }
-      });
-      renderDashboard();
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
     }
 
-    function syncEndpointBadge() {
-      const badge = document.getElementById('modeBadge');
-      const text = document.getElementById('modeBadgeText');
-      if (apiEndpoint) {
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm';
-        text.textContent = 'Synced Live';
+    function detectBoard(hotel) {
+      const blob = JSON.stringify(hotel.ota_breakdown || {}).toLowerCase();
+      if (blob.includes('breakfast') || blob.includes('sarapan') || blob.includes('bb')) return 'BB';
+      return 'RO';
+    }
+
+    function setViewMode(mode) {
+      currentView = mode;
+      ['DAILY', 'GRID7', 'HISTORY'].forEach(m => {
+        document.getElementById('panel' + m).classList.toggle('hidden', m !== mode);
+        const btn = document.getElementById('view' + m);
+        btn.className = m === mode
+          ? 'px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition'
+          : 'px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition';
+      });
+      renderActiveView();
+    }
+
+    function handleDateChange() {
+      const checkin = document.getElementById('checkinInput').value;
+      if (dateSnapshots[checkin]) {
+        currentHotels = dateSnapshots[checkin];
+        renderActiveView();
       } else {
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm';
-        text.textContent = 'Local Mode';
+        fetchLiveRates();
       }
     }
 
-    async function fetchLiveRates() {
-      const checkin = document.getElementById('checkinInput').value;
+    async function fetchLiveRates(targetDate = null, silent = false) {
+      const checkin = targetDate || document.getElementById('checkinInput').value;
       const icon = document.getElementById('spinIcon');
-      icon.classList.add('animate-spin');
+      const badge = document.getElementById('modeBadge');
+      const badgeText = document.getElementById('modeBadgeText');
+      const alertBanner = document.getElementById('alertBanner');
+
+      if (!silent) icon.classList.add('animate-spin');
+
+      if (!apiEndpoint) {
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm';
+        badgeText.textContent = 'Offline Mode';
+        if (!silent) icon.classList.remove('animate-spin');
+        renderActiveView();
+        return null;
+      }
 
       try {
-        if (!apiEndpoint) {
-          document.getElementById('lastUpdateText').textContent = nowWITA();
-          renderDashboard();
-          return;
-        }
-
         const res = await fetch(`${apiEndpoint}?checkin=${encodeURIComponent(checkin)}`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Respons API tidak valid');
+        if (!res.ok) throw new Error(data.error || 'Gagal menarik data dari backend');
 
-        if (Array.isArray(data.hotels) && data.hotels.length > 0) {
-          currentHotels = data.hotels;
+        const hotels = Array.isArray(data.hotels) ? data.hotels : [];
+        dateSnapshots[checkin] = hotels;
+        localStorage.setItem('bpn_date_snapshots', JSON.stringify(dateSnapshots));
+
+        if (!targetDate || targetDate === document.getElementById('checkinInput').value) {
+          currentHotels = hotels;
+          document.getElementById('lastUpdateText').textContent = nowWITA();
         }
-        document.getElementById('lastUpdateText').textContent = nowWITA();
-        renderDashboard();
+
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm';
+        badgeText.textContent = 'Synced Live';
+        alertBanner.classList.add('hidden');
+
+        recordSnapshotHistory(checkin, hotels);
+        renderActiveView();
+        return hotels;
       } catch (err) {
-        alert('Gagal menarik data live: ' + err.message);
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-rose-500 text-white shadow-sm';
+        badgeText.textContent = 'API Error';
+        alertBanner.className = 'rounded-2xl p-3.5 flex items-start gap-3 text-xs border bg-rose-50 border-rose-200 text-rose-800';
+        alertBanner.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i><div><strong>Gagal Sinkronisasi:</strong> ${err.message}</div>`;
+        lucide.createIcons();
+        return null;
       } finally {
-        setTimeout(() => icon.classList.remove('animate-spin'), 350);
+        if (!silent) setTimeout(() => icon.classList.remove('animate-spin'), 350);
       }
     }
 
-    function toggleOwnSoldOutDemo() {
-      const own = currentHotels.find(h => h.isOwn);
-      if (!own) return;
-      if (own.status === 'SOLD_OUT') {
-        own.status = 'AVAILABLE';
-        own.lowest_rate = 815000;
-        own.ota_breakdown = { traveloka: 825000, tiket: 825000, agoda: 815000, booking: 830000 };
-      } else {
-        own.status = 'SOLD_OUT';
-        own.lowest_rate = 0;
-        own.ota_breakdown = {};
-      }
-      document.getElementById('lastUpdateText').textContent = nowWITA();
-      renderDashboard();
-    }
-
-    function renderDashboard() {
-      const checkin = document.getElementById('checkinInput').value;
+    function computeMetrics(hotels) {
       const offset = parseInt(document.getElementById('offsetSelect').value, 10) || 0;
-
-      document.getElementById('activeDatePill').textContent = checkin || '-';
-
-      const ownHotel = currentHotels.find(h => h.isOwn);
-      const competitors = currentHotels.filter(h => !h.isOwn);
+      const ownHotel = hotels.find(h => h.isOwn);
+      const competitors = hotels.filter(h => !h.isOwn);
       const openCompetitors = competitors.filter(h => h.status === 'AVAILABLE' && h.lowest_rate > 0);
-
-      // Update Summary Line
-      const ownSoldOut = !ownHotel || ownHotel.status !== 'AVAILABLE' || !ownHotel.lowest_rate || ownHotel.lowest_rate <= 0;
-      const summaryOwnEl = document.getElementById('summaryOwnStatus');
-      if (ownSoldOut) {
-        summaryOwnEl.textContent = 'SOLD OUT / PENUH';
-        summaryOwnEl.className = 'text-rose-600 font-bold';
-      } else {
-        summaryOwnEl.textContent = formatIDR(ownHotel.lowest_rate) + ' (OPEN)';
-        summaryOwnEl.className = 'text-emerald-600 font-bold';
-      }
-
-      document.getElementById('summaryOpenCount').textContent = openCompetitors.length;
-      document.getElementById('summaryTotalComp').textContent = competitors.length;
+      const soldOutCompCount = competitors.length - openCompetitors.length;
 
       const marketAvg = openCompetitors.length > 0
-        ? openCompetitors.reduce((sum, item) => sum + item.lowest_rate, 0) / openCompetitors.length
+        ? openCompetitors.reduce((s, x) => s + x.lowest_rate, 0) / openCompetitors.length
         : 0;
 
-      document.getElementById('summaryMarketAvg').textContent = marketAvg > 0 ? formatIDR(marketAvg) : 'N/A';
+      // STAAH-style Sold-Out Lift: +Rp 15,000 per competitor that is SOLD OUT
+      const soldOutLift = soldOutCompCount * 15000;
+      const recommendedBar = marketAvg > 0
+        ? Math.round((marketAvg + offset + soldOutLift) / 5000) * 5000
+        : 0;
 
-      if (openCompetitors.length > 0) {
-        const sorted = [...openCompetitors].sort((a, b) => a.lowest_rate - b.lowest_rate);
-        document.getElementById('summaryLowestComp').textContent = `${formatIDR(sorted[0].lowest_rate)} (${sorted[0].name.split(' ')[0]})`;
+      const sortedOpen = [...openCompetitors].sort((a, b) => a.lowest_rate - b.lowest_rate);
+      const lowestComp = sortedOpen[0] || null;
+
+      return { ownHotel, competitors, openCompetitors, soldOutCompCount, soldOutLift, marketAvg, recommendedBar, lowestComp };
+    }
+
+    function recordSnapshotHistory(checkin, hotels) {
+      const m = computeMetrics(hotels);
+      const alerts = [];
+      if (m.soldOutCompCount >= 2) alerts.push(`${m.soldOutCompCount} kompetitor Sold Out`);
+      if (!m.ownHotel || m.ownHotel.status !== 'AVAILABLE') alerts.push('Platinum Sold Out');
+      if (alerts.length === 0) alerts.push('Normal Parity');
+
+      const entry = {
+        id: Date.now(),
+        time: nowWITA(),
+        checkin,
+        ownStatus: m.ownHotel?.status === 'AVAILABLE' ? 'AVAILABLE' : 'SOLD_OUT',
+        ownLowest: m.ownHotel?.lowest_rate || 0,
+        marketAvg: Math.round(m.marketAvg),
+        recommendedBar: m.recommendedBar,
+        openCount: m.openCompetitors.length,
+        totalComp: m.competitors.length,
+        alertSummary: alerts.join(' • ')
+      };
+
+      historyLogs.unshift(entry);
+      historyLogs = historyLogs.slice(0, 60);
+      localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
+
+      if (sbUrl && sbKey) {
+        fetch(`${sbUrl}/rest/v1/rate_shop_logs`, {
+          method: 'POST',
+          headers: {
+            'apikey': sbKey,
+            'Authorization': `Bearer ${sbKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            checkin_date: checkin,
+            fetched_at: new Date().toISOString(),
+            market_avg: Math.round(m.marketAvg),
+            recommended_bar: m.recommendedBar,
+            payload: entry
+          })
+        }).catch(() => {});
+      }
+    }
+
+    async function syncHistoryFromSupabase() {
+      if (!sbUrl || !sbKey) {
+        alert('Isi Supabase URL & Anon Key terlebih dahulu di menu API & Panduan.');
+        return;
+      }
+      try {
+        const res = await fetch(`${sbUrl}/rest/v1/rate_shop_logs?select=payload,fetched_at&order=fetched_at.desc&limit=60`, {
+          headers: { 'apikey': sbKey, 'Authorization': `Bearer ${sbKey}` }
+        });
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          historyLogs = rows.map(r => r.payload).filter(Boolean);
+          localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
+          renderHistoryView();
+        }
+      } catch (e) {
+        alert('Gagal memuat dari Supabase: ' + e.message);
+      }
+    }
+
+    function clearLocalHistory() {
+      historyLogs = [];
+      localStorage.removeItem('bpn_history_logs');
+      renderHistoryView();
+    }
+
+    function renderActiveView() {
+      const checkin = document.getElementById('checkinInput').value;
+      document.getElementById('activeDatePill').textContent = checkin || '-';
+
+      const m = computeMetrics(currentHotels);
+
+      const ownSoldOut = !m.ownHotel || m.ownHotel.status !== 'AVAILABLE' || !m.ownHotel.lowest_rate || m.ownHotel.lowest_rate <= 0;
+      const ownEl = document.getElementById('summaryOwnStatus');
+      if (currentHotels.length === 0) {
+        ownEl.textContent = '-';
+        ownEl.className = 'text-slate-700';
+      } else if (ownSoldOut) {
+        ownEl.textContent = 'SOLD OUT / PENUH';
+        ownEl.className = 'text-rose-600 font-bold';
       } else {
-        document.getElementById('summaryLowestComp').textContent = 'Semua Penuh';
+        ownEl.textContent = `${formatIDR(m.ownHotel.lowest_rate)} (OPEN)`;
+        ownEl.className = 'text-emerald-600 font-bold';
       }
 
-      const recEl = document.getElementById('recommendedRateText');
-      if (marketAvg > 0) {
-        const rounded = Math.round((marketAvg + offset) / 5000) * 5000;
-        recEl.textContent = formatIDR(rounded);
+      document.getElementById('summaryOpenCount').textContent = m.openCompetitors.length;
+      document.getElementById('summaryTotalComp').textContent = m.competitors.length || 5;
+      document.getElementById('summaryMarketAvg').textContent = m.marketAvg > 0 ? formatIDR(m.marketAvg) : 'N/A';
+      document.getElementById('summaryLowestComp').textContent = m.lowestComp
+        ? `${formatIDR(m.lowestComp.lowest_rate)} (${m.lowestComp.name.split(' ')[0]})`
+        : (currentHotels.length ? 'Semua Penuh' : '-');
+
+      document.getElementById('recommendedRateText').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'BAR Standard';
+
+      const liftBadge = document.getElementById('soldOutLiftBadge');
+      if (m.soldOutLift > 0) {
+        liftBadge.classList.remove('hidden');
+        liftBadge.textContent = `Sold-Out Lift +${formatNum(m.soldOutLift)}`;
       } else {
-        recEl.textContent = 'BAR Standard';
+        liftBadge.classList.add('hidden');
       }
 
-      // Render Table Rows
+      renderDailyTable(m);
+      renderGrid7View(checkin);
+      renderHistoryView();
+    }
+
+    function renderDailyTable(m) {
       const tbody = document.getElementById('rateTableBody');
       tbody.innerHTML = '';
 
-      const filteredHotels = currentHotels.filter(h => {
-        const isOpen = h.status === 'AVAILABLE' && h.lowest_rate > 0;
-        if (activeStatusFilter === 'AVAILABLE') return isOpen;
-        if (activeStatusFilter === 'SOLD_OUT') return !isOpen;
-        return true;
-      });
-
-      if (filteredHotels.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8" class="py-8 text-center text-slate-500">Tidak ada data properti pada filter status ini.</td>
-          </tr>
-        `;
+      if (currentHotels.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="py-10 text-center text-slate-500">Klik <strong>Cek OTA Sekarang</strong> untuk menarik data live hotel bintang 4 di Balikpapan.</td></tr>`;
         return;
       }
 
-      filteredHotels.forEach(h => {
+      const boardFilter = document.getElementById('boardFilterSelect').value;
+      const statusFilter = document.getElementById('statusFilterSelect').value;
+
+      const filtered = currentHotels.filter(h => {
         const isOpen = h.status === 'AVAILABLE' && h.lowest_rate > 0;
+        if (statusFilter === 'AVAILABLE' && !isOpen) return false;
+        if (statusFilter === 'SOLD_OUT' && isOpen) return false;
+        if (boardFilter !== 'ALL' && detectBoard(h) !== boardFilter) return false;
+        return true;
+      });
+
+      filtered.forEach(h => {
+        const isOpen = h.status === 'AVAILABLE' && h.lowest_rate > 0;
+        const board = detectBoard(h);
         const ota = h.ota_breakdown || {};
-        const spread = isOpen && marketAvg > 0 ? Math.round(h.lowest_rate - marketAvg) : 0;
+        const otaRates = [ota.traveloka, ota.tiket, ota.agoda, ota.booking].filter(v => v && v > 0);
+        const otaGap = otaRates.length >= 2 ? Math.max(...otaRates) - Math.min(...otaRates) : 0;
+        const spread = isOpen && m.marketAvg > 0 ? Math.round(h.lowest_rate - m.marketAvg) : 0;
+
+        let parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-500">-</span>';
+        if (!isOpen) {
+          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-100 text-rose-700">SOLD OUT</span>';
+        } else if (otaGap >= 35000) {
+          parityBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-900">Disparity ${formatNum(otaGap)}</span>`;
+        } else {
+          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">In Parity</span>';
+        }
 
         const tr = document.createElement('tr');
         tr.className = h.isOwn ? 'bg-amber-50/70 hover:bg-amber-50 transition' : 'bg-white hover:bg-slate-50 transition';
-
         tr.innerHTML = `
           <td class="py-3 px-4 border-r border-slate-200">
             <div class="flex flex-wrap items-center gap-2">
@@ -543,55 +612,120 @@
             </div>
             <span class="block text-[11px] text-slate-500 mt-0.5">${h.area}</span>
           </td>
-          <td class="py-3 px-3 text-center border-r border-slate-200">
+          <td class="py-3 px-2.5 text-center border-r border-slate-200">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-phb-blue border border-sky-200">${board}</span>
+          </td>
+          <td class="py-3 px-2.5 text-center border-r border-slate-200">
             ${isOpen
               ? '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>'
               : '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">SOLD OUT</span>'
             }
           </td>
-          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
-            ${isOpen ? formatNum(ota.traveloka) : 'Sold Out'}
-          </td>
-          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
-            ${isOpen ? formatNum(ota.tiket) : 'Sold Out'}
-          </td>
-          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
-            ${isOpen ? formatNum(ota.agoda) : 'Sold Out'}
-          </td>
-          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
-            ${isOpen ? formatNum(ota.booking) : 'Sold Out'}
-          </td>
-          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${isOpen ? 'bg-amber-50/80 text-amber-900' : 'bg-rose-50 text-rose-600'}">
-            ${isOpen ? formatNum(h.lowest_rate) : 'FULL'}
-          </td>
-          <td class="py-3 px-4 text-right mono font-bold ${!isOpen ? 'text-slate-400' : spread < 0 ? 'text-emerald-600' : spread > 0 ? 'text-rose-600' : 'text-phb-blue'}">
-            ${!isOpen ? '-' : (spread > 0 ? '+' : '') + formatNum(spread)}
-          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.traveloka) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.tiket) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.agoda) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.booking) : 'Sold Out'}</td>
+          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${isOpen ? 'bg-amber-50/80 text-amber-900' : 'bg-rose-50 text-rose-600'}">${isOpen ? formatNum(h.lowest_rate) : 'FULL'}</td>
+          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${!isOpen ? 'text-slate-400' : spread < 0 ? 'text-emerald-600' : spread > 0 ? 'text-rose-600' : 'text-phb-blue'}">${!isOpen ? '-' : (spread > 0 ? '+' : '') + formatNum(spread)}</td>
+          <td class="py-3 px-3 text-center">${parityBadge}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function handleDateOrFilterChange() {
-      if (apiEndpoint) {
-        fetchLiveRates();
-      } else {
-        document.getElementById('lastUpdateText').textContent = nowWITA();
-        renderDashboard();
+    function renderGrid7View(startDate) {
+      const head = document.getElementById('grid7Head');
+      const body = document.getElementById('grid7Body');
+      const dates = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+
+      head.innerHTML = `
+        <tr>
+          <th class="py-3 px-4 border-r border-white/15">Properti Hotel Bintang 4</th>
+          ${dates.map(d => `<th class="py-3 px-2.5 text-center border-r border-white/15 cursor-pointer hover:bg-phb-darkblue" onclick="selectDateFromGrid('${d}')">${d.slice(5)}</th>`).join('')}
+        </tr>
+      `;
+
+      const baseList = currentHotels.length > 0 ? currentHotels : [
+        { id: 'platinum', name: 'Platinum Hotel & Convention Hall Balikpapan', isOwn: true },
+        { id: 'swissbel', name: 'Swiss-Belhotel Balikpapan', isOwn: false },
+        { id: 'fourpoints', name: 'Four Points by Sheraton Balikpapan', isOwn: false },
+        { id: 'aston', name: 'ASTON Balikpapan Hotel & Residence', isOwn: false },
+        { id: 'bluesky', name: 'Blue Sky Hotel Balikpapan', isOwn: false },
+        { id: 'novotel', name: 'Novotel Balikpapan', isOwn: false }
+      ];
+
+      body.innerHTML = '';
+      baseList.forEach(base => {
+        const tr = document.createElement('tr');
+        tr.className = base.isOwn ? 'bg-amber-50/60' : 'bg-white';
+        const cells = dates.map(d => {
+          const snap = (dateSnapshots[d] || []).find(x => x.id === base.id);
+          if (!snap) return `<td class="py-2.5 px-2.5 text-center mono text-slate-400 border-r border-slate-200">-</td>`;
+          if (snap.status !== 'AVAILABLE' || !snap.lowest_rate) {
+            return `<td class="py-2.5 px-2.5 text-center mono font-bold text-rose-600 bg-rose-50/60 border-r border-slate-200">SOLD OUT</td>`;
+          }
+          return `<td class="py-2.5 px-2.5 text-center mono font-semibold text-slate-800 border-r border-slate-200">${formatNum(snap.lowest_rate)}</td>`;
+        }).join('');
+
+        tr.innerHTML = `<td class="py-2.5 px-4 font-bold text-slate-800 border-r border-slate-200">${base.isOwn ? '★ ' : ''}${base.name}</td>${cells}`;
+        body.appendChild(tr);
+      });
+    }
+
+    function selectDateFromGrid(d) {
+      document.getElementById('checkinInput').value = d;
+      setViewMode('DAILY');
+      handleDateChange();
+    }
+
+    async function scanNext7Days() {
+      const btn = document.getElementById('scan7Btn');
+      btn.disabled = true;
+      btn.textContent = 'Scanning 7 Hari...';
+      const start = document.getElementById('checkinInput').value;
+      for (let i = 0; i < 7; i++) {
+        await fetchLiveRates(addDays(start, i), true);
       }
+      btn.disabled = false;
+      btn.textContent = 'Scan 7 Hari (Pakai Kuota)';
+      renderGrid7View(start);
+    }
+
+    function renderHistoryView() {
+      const tbody = document.getElementById('historyTableBody');
+      document.getElementById('supabaseSyncStatus').textContent = (sbUrl && sbKey)
+        ? 'Penyimpanan: Local Browser + Supabase Cloud'
+        : 'Penyimpanan: Local Browser';
+
+      if (historyLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">Belum ada riwayat scan tersimpan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = historyLogs.map(row => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-4 mono text-slate-600">${row.time || '-'}</td>
+          <td class="py-2.5 px-3 mono font-bold text-phb-blue">${row.checkin}</td>
+          <td class="py-2.5 px-3 font-bold ${row.ownStatus === 'AVAILABLE' ? 'text-emerald-600' : 'text-rose-600'}">${row.ownStatus}</td>
+          <td class="py-2.5 px-3 text-right mono">${row.ownLowest > 0 ? formatNum(row.ownLowest) : '-'}</td>
+          <td class="py-2.5 px-3 text-right mono font-semibold">${row.marketAvg > 0 ? formatNum(row.marketAvg) : '-'}</td>
+          <td class="py-2.5 px-3 text-right mono font-bold text-amber-800">${row.recommendedBar > 0 ? formatNum(row.recommendedBar) : '-'}</td>
+          <td class="py-2.5 px-3 text-center mono">${row.openCount} / ${row.totalComp}</td>
+          <td class="py-2.5 px-4 text-slate-700">${row.alertSummary || '-'}</td>
+        </tr>
+      `).join('');
     }
 
     function configureAutoPoll() {
       if (pollTimer) clearInterval(pollTimer);
       const ms = parseInt(document.getElementById('autoPollSelect').value, 10) || 0;
-      if (ms > 0) pollTimer = setInterval(fetchLiveRates, ms);
+      if (ms > 0) pollTimer = setInterval(() => fetchLiveRates(null, true), ms);
     }
 
     function openConfigModal() {
       document.getElementById('apiUrlInput').value = apiEndpoint;
-      document.getElementById('configFeedback').textContent = apiEndpoint
-        ? `Terhubung ke: ${apiEndpoint}`
-        : 'Belum ada URL backend yang disimpan (menggunakan data uji coba lokal).';
+      document.getElementById('sbUrlInput').value = sbUrl;
+      document.getElementById('sbKeyInput').value = sbKey;
       document.getElementById('configModal').classList.remove('hidden');
     }
 
@@ -599,48 +733,34 @@
       document.getElementById('configModal').classList.add('hidden');
     }
 
-    function saveApiConfig() {
-      apiEndpoint = document.getElementById('apiUrlInput').value.trim();
-      localStorage.setItem('bpn_safe_live_endpoint', apiEndpoint);
-      syncEndpointBadge();
+    function saveConfig() {
+      apiEndpoint = document.getElementById('apiUrlInput').value.trim() || defaultEndpoint;
+      sbUrl = document.getElementById('sbUrlInput').value.trim();
+      sbKey = document.getElementById('sbKeyInput').value.trim();
+      localStorage.setItem('bpn_vercel_endpoint', apiEndpoint);
+      localStorage.setItem('bpn_sb_url', sbUrl);
+      localStorage.setItem('bpn_sb_key', sbKey);
       closeConfigModal();
       fetchLiveRates();
     }
 
-    function resetToDemo() {
-      apiEndpoint = '';
-      localStorage.removeItem('bpn_safe_live_endpoint');
-      currentHotels = JSON.parse(JSON.stringify(initialSampleHotels));
-      syncEndpointBadge();
-      closeConfigModal();
-      renderDashboard();
-    }
-
     function exportCSV() {
       const checkin = document.getElementById('checkinInput').value;
-      let csv = 'CheckIn,Hotel,Area,Status,Traveloka,Tiket,Agoda,Booking,LowestRate\n';
+      const m = computeMetrics(currentHotels);
+      let csv = 'CheckIn,Hotel,Board,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,RecommendedBAR\n';
       currentHotels.forEach(h => {
         const o = h.ota_breakdown || {};
-        csv += `${checkin},"${h.name}","${h.area}",${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0}\n`;
+        csv += `${checkin},"${h.name}",${detectBoard(h)},${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `PHB_BPN_4Star_Rates_${checkin}.csv`;
+      link.download = `PHB_STAAH_RateShop_${checkin}.csv`;
       link.click();
     }
 
-    function copyCode(id) {
-      const el = document.getElementById(id);
-      navigator.clipboard.writeText(el.innerText);
-      alert('Kode berhasil disalin!');
-    }
-
     lucide.createIcons();
-    syncEndpointBadge();
-    document.getElementById('lastUpdateText').textContent = nowWITA();
-    renderDashboard();
-    if (apiEndpoint) fetchLiveRates();
+    fetchLiveRates();
   </script>
 </body>
 </html>
