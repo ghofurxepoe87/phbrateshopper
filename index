@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPN 4★ Live Rate Shopper — Platinum Hotel Balikpapan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            phb: {
+              blue: '#00669E',
+              darkblue: '#004F7C',
+              lightblue: '#EBF5FB',
+              bg: '#F1F5F9',
+              gold: '#C59B27',
+              amber: '#F5B81C'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #E2E8F0; }
+    ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Corporate Blue Header (Matching PHB Breakfast Reconciliation) -->
+  <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md px-4 py-2.5">
+    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Left: Platinum Logo Card + Title + Badges -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-sm">
+          <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
+            ✦
+          </div>
+          <div class="leading-none">
+            <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
+            <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
+            <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">BPN 4★ Live Rate Shopper</h1>
+          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-white/20 text-white">
+            FBM / REV
+          </span>
+          <span id="modeBadge" class="flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm">
+            <i data-lucide="cloud-check" class="w-3 h-3"></i>
+            <span id="modeBadgeText">Local Ready</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Right: Action Buttons (Amber, White, Teal/Blue) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="openConfigModal()" class="flex items-center gap-1.5 bg-phb-amber hover:bg-amber-400 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
+          <i data-lucide="plug" class="w-3.5 h-3.5"></i>
+          <span>API & Panduan</span>
+        </button>
+
+        <button onclick="fetchLiveRates()" class="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-phb-blue text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
+          <i data-lucide="refresh-cw" id="spinIcon" class="w-3.5 h-3.5"></i>
+          <span>Cek OTA Sekarang</span>
+        </button>
+
+        <button onclick="exportCSV()" class="flex items-center gap-1.5 bg-[#1B85B8] hover:bg-[#1673A0] text-white border border-white/25 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm transition">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+          <span>Export</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 py-4 space-y-4">
+
+    <!-- Sub-Toolbar Filter Pills (Matching Reference Row 2) -->
+    <section class="flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Pill 1: Check-in Date -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-2.5 text-xs">
+        <div class="flex items-center gap-1.5 text-slate-500 font-medium">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-phb-blue"></i>
+          <span>Check-In:</span>
+        </div>
+        <input type="date" id="checkinInput" onchange="handleDateOrFilterChange()" class="border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-phb-blue" />
+        <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg">
+          -
+        </span>
+      </div>
+
+      <!-- Pill 2: Status Filter Tabs -->
+      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm flex items-center gap-1 text-xs">
+        <button onclick="setFilterTab('ALL')" id="tabALL" class="px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition">
+          Semua Properti (4★)
+        </button>
+        <button onclick="setFilterTab('AVAILABLE')" id="tabAVAILABLE" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
+          Tersedia (Open)
+        </button>
+        <button onclick="setFilterTab('SOLD_OUT')" id="tabSOLD_OUT" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
+          Sold Out
+        </button>
+      </div>
+
+      <!-- Pill 3: Strategy & Simulator Controls -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-phb-blue"></i>
+          <span class="text-slate-500 font-medium">Posisi BAR:</span>
+          <select id="offsetSelect" onchange="renderDashboard()" class="mono border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
+            <option value="-25000">-25,000</option>
+            <option value="0" selected>0 (Parity)</option>
+            <option value="25000">+25,000</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1">
+          <span class="text-amber-800 font-semibold">Rekomendasi:</span>
+          <span id="recommendedRateText" class="mono font-bold text-amber-900">Rp 0</span>
+        </div>
+
+        <button onclick="toggleOwnSoldOutDemo()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold px-2.5 py-1 rounded-lg transition">
+          Simulasi Sold Out
+        </button>
+      </div>
+    </section>
+
+    <!-- Header Summary Card (Matching "PHB DAILY BREAKFAST SHEET" Card) -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-phb-blue">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-sm font-extrabold tracking-wide text-slate-800 uppercase">PHB COMPETITOR RATE & OTA PARITY SHEET</h2>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded border border-slate-200">BALIKPAPAN 4★</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">
+            Status Platinum: <strong id="summaryOwnStatus" class="text-rose-600">SOLD OUT</strong>
+            <span class="mx-1.5 text-slate-300">|</span>
+            Kompetitor Open: <strong id="summaryOpenCount" class="text-emerald-600">4</strong> / <strong id="summaryTotalComp" class="text-slate-700">5</strong> Hotel
+            <span class="mx-1.5 text-slate-300">|</span>
+            Rata-Rata Pasar: <strong id="summaryMarketAvg" class="mono text-phb-blue">Rp 0</strong>
+            <span class="mx-1.5 text-slate-300">|</span>
+            Termurah: <strong id="summaryLowestComp" class="mono text-rose-600">Rp 0</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <div>
+          <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
+          <select id="autoPollSelect" onchange="configureAutoPoll()" class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
+            <option value="0">Manual</option>
+            <option value="300000">Tiap 5 Menit</option>
+            <option value="900000">Tiap 15 Menit</option>
+          </select>
+        </div>
+        <div class="text-right border-l border-slate-200 pl-3">
+          <span class="block text-[10px] font-semibold uppercase text-slate-400">Update Terakhir</span>
+          <span id="lastUpdateText" class="mono text-xs font-bold text-phb-blue">--:--:-- WITA</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Multi-Color Grouped Table (Matching Reference Table Design) -->
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <!-- Top Pastel Category Group Headers -->
+            <tr class="text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200">
+              <th colspan="2" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
+                PROPERTY & OTA STATUS
+              </th>
+              <th colspan="4" class="py-2.5 px-4 bg-sky-50 text-phb-blue text-center border-r border-slate-200">
+                ONLINE TRAVEL AGENT (OTA) PUBLIC RATES
+              </th>
+              <th colspan="2" class="py-2.5 px-4 bg-emerald-50 text-emerald-800 text-center">
+                MARKET BENCHMARK & PARITY
+              </th>
+            </tr>
+
+            <!-- Main Corporate Blue Column Headers -->
+            <tr class="bg-phb-blue text-white text-[11px] font-bold">
+              <th class="py-3 px-4 border-r border-white/15">Properti Hotel Bintang 4 (A)</th>
+              <th class="py-3 px-3 text-center border-r border-white/15">Status OTA (B)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (C)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (D)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Agoda (E)</th>
+              <th class="py-3 px-3 text-right border-r border-white/15">Booking.com (F)</th>
+              <th class="py-3 px-3 text-right bg-[#7D663B] text-amber-100 border-r border-white/15">Lowest Rate (G)</th>
+              <th class="py-3 px-4 text-right">Spread vs Avg (H)</th>
+            </tr>
+          </thead>
+          <tbody id="rateTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- API & Serverless Code Modal -->
+  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-4 bg-phb-blue text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold">Konfigurasi Live API (`/api/live-rates`) & Panduan</h3>
+          <p class="text-xs text-sky-100">Hubungkan ke backend Vercel agar status Sold Out & tarif OTA terbaca otomatis.</p>
+        </div>
+        <button onclick="closeConfigModal()" class="text-white/80 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+          <label for="apiUrlInput" class="block font-bold text-phb-blue uppercase tracking-wider">
+            1. URL Backend Vercel (`/api/live-rates`)
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="url" id="apiUrlInput" placeholder="https://rateshopper.ghofurapp.site/api/live-rates" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:border-phb-blue focus:outline-none" />
+            <button onclick="saveApiConfig()" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-4 py-2 rounded-lg transition shrink-0">
+              Simpan & Tes Live
+            </button>
+            <button onclick="resetToDemo()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-3 py-2 rounded-lg transition shrink-0">
+              Mode Lokal
+            </button>
+          </div>
+          <p id="configFeedback" class="text-[11px] text-slate-500"></p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-slate-800">2. Kode Serverless Vercel (`/api/live-rates.js`)</span>
+            <button onclick="copyCode('serverlessSnippet')" class="text-[11px] bg-phb-amber hover:bg-amber-400 text-slate-900 font-bold px-2.5 py-1 rounded">
+              Salin Kode
+            </button>
+          </div>
+          <pre id="serverlessSnippet" class="mono bg-slate-900 text-slate-100 rounded-xl p-3.5 overflow-x-auto text-[11px] leading-relaxed">export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const checkin = req.query.checkin || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
+
+  const tracked = [
+    { id: 'platinum', matchKey: 'platinum', name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta', isOwn: true },
+    { id: 'swissbel', matchKey: 'swiss-belhotel', name: 'Swiss-Belhotel Balikpapan', area: 'Balikpapan Ocean Square', isOwn: false },
+    { id: 'fourpoints', matchKey: 'four points', name: 'Four Points by Sheraton Balikpapan', area: 'Sepinggan', isOwn: false },
+    { id: 'aston', matchKey: 'aston', name: 'ASTON Balikpapan Hotel & Residence', area: 'Jl. Jenderal Sudirman', isOwn: false },
+    { id: 'bluesky', matchKey: 'blue sky', name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur', isOwn: false },
+    { id: 'novotel', matchKey: 'novotel', name: 'Novotel Balikpapan', area: 'Jl. Brigjen Ery Suparjan', isOwn: false }
+  ];
+
+  if (!process.env.SERPAPI_KEY) {
+    return res.status(400).json({ error: 'SERPAPI_KEY belum diatur di Environment Variables Vercel.' });
+  }
+
+  try {
+    const apiUrl = `https://serpapi.com/search.json?engine=google_hotels&q=4+star+hotels+in+Balikpapan&check_in_date=${checkin}&check_out_date=${checkout}&currency=IDR&gl=id&hl=id&api_key=${process.env.SERPAPI_KEY}`;
+    const response = await fetch(apiUrl);
+    const json = await response.json();
+    const props = json.properties || [];
+
+    const hotels = tracked.map(item => {
+      const found = props.find(p => (p.name || '').toLowerCase().includes(item.matchKey));
+      const lowest = found?.rate_per_night?.extracted_lowest || 0;
+      if (!found || !lowest) {
+        return { ...item, status: 'SOLD_OUT', lowest_rate: 0, ota_breakdown: {} };
+      }
+      const ota = {};
+      (found.prices || []).forEach(p => {
+        const src = (p.source || '').toLowerCase();
+        const val = p.rate_per_night?.extracted_lowest || 0;
+        if (src.includes('traveloka')) ota.traveloka = val;
+        if (src.includes('tiket')) ota.tiket = val;
+        if (src.includes('agoda')) ota.agoda = val;
+        if (src.includes('booking')) ota.booking = val;
+      });
+      return { ...item, status: 'AVAILABLE', lowest_rate: lowest, ota_breakdown: ota };
+    });
+
+    return res.status(200).json({ checkin, fetched_at: new Date().toISOString(), hotels });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    document.getElementById('checkinInput').value = tomorrowStr;
+
+    const initialSampleHotels = [
+      {
+        id: 'platinum',
+        name: 'Platinum Hotel & Convention Hall Balikpapan',
+        area: 'Jl. Soekarno Hatta, Balikpapan',
+        isOwn: true,
+        status: 'SOLD_OUT',
+        lowest_rate: 0,
+        ota_breakdown: {}
+      },
+      {
+        id: 'swissbel',
+        name: 'Swiss-Belhotel Balikpapan',
+        area: 'Balikpapan Ocean Square (BOS)',
+        isOwn: false,
+        status: 'AVAILABLE',
+        lowest_rate: 840000,
+        ota_breakdown: { traveloka: 860000, tiket: 855000, agoda: 840000, booking: 865000 }
+      },
+      {
+        id: 'fourpoints',
+        name: 'Four Points by Sheraton Balikpapan',
+        area: 'Sepinggan / Airport Corridor',
+        isOwn: false,
+        status: 'AVAILABLE',
+        lowest_rate: 875000,
+        ota_breakdown: { traveloka: 890000, tiket: 885000, agoda: 875000, booking: 895000 }
+      },
+      {
+        id: 'aston',
+        name: 'ASTON Balikpapan Hotel & Residence',
+        area: 'Jl. Jenderal Sudirman',
+        isOwn: false,
+        status: 'AVAILABLE',
+        lowest_rate: 798000,
+        ota_breakdown: { traveloka: 810000, tiket: 815000, agoda: 798000, booking: 820000 }
+      },
+      {
+        id: 'bluesky',
+        name: 'Blue Sky Hotel Balikpapan',
+        area: 'Jl. Letjen Suprapto, Kebun Sayur',
+        isOwn: false,
+        status: 'SOLD_OUT',
+        lowest_rate: 0,
+        ota_breakdown: {}
+      },
+      {
+        id: 'novotel',
+        name: 'Novotel Balikpapan',
+        area: 'Jl. Brigjen Ery Suparjan',
+        isOwn: false,
+        status: 'AVAILABLE',
+        lowest_rate: 855000,
+        ota_breakdown: { traveloka: 875000, tiket: 870000, agoda: 855000, booking: 880000 }
+      }
+    ];
+
+    let currentHotels = JSON.parse(JSON.stringify(initialSampleHotels));
+    let activeStatusFilter = 'ALL';
+    let apiEndpoint = localStorage.getItem('bpn_safe_live_endpoint') || '';
+    let pollTimer = null;
+
+    function formatNum(amount) {
+      if (!amount || amount <= 0) return '-';
+      return Math.round(amount).toLocaleString('id-ID');
+    }
+
+    function formatIDR(amount) {
+      if (!amount || amount <= 0) return '-';
+      return 'Rp ' + Math.round(amount).toLocaleString('id-ID');
+    }
+
+    function nowWITA() {
+      return new Date().toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }) + ' WITA';
+    }
+
+    function setFilterTab(filterVal) {
+      activeStatusFilter = filterVal;
+      ['ALL', 'AVAILABLE', 'SOLD_OUT'].forEach(key => {
+        const btn = document.getElementById('tab' + key);
+        if (key === filterVal) {
+          btn.className = 'px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition';
+        }
+      });
+      renderDashboard();
+    }
+
+    function syncEndpointBadge() {
+      const badge = document.getElementById('modeBadge');
+      const text = document.getElementById('modeBadgeText');
+      if (apiEndpoint) {
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm';
+        text.textContent = 'Synced Live';
+      } else {
+        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm';
+        text.textContent = 'Local Mode';
+      }
+    }
+
+    async function fetchLiveRates() {
+      const checkin = document.getElementById('checkinInput').value;
+      const icon = document.getElementById('spinIcon');
+      icon.classList.add('animate-spin');
+
+      try {
+        if (!apiEndpoint) {
+          document.getElementById('lastUpdateText').textContent = nowWITA();
+          renderDashboard();
+          return;
+        }
+
+        const res = await fetch(`${apiEndpoint}?checkin=${encodeURIComponent(checkin)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Respons API tidak valid');
+
+        if (Array.isArray(data.hotels) && data.hotels.length > 0) {
+          currentHotels = data.hotels;
+        }
+        document.getElementById('lastUpdateText').textContent = nowWITA();
+        renderDashboard();
+      } catch (err) {
+        alert('Gagal menarik data live: ' + err.message);
+      } finally {
+        setTimeout(() => icon.classList.remove('animate-spin'), 350);
+      }
+    }
+
+    function toggleOwnSoldOutDemo() {
+      const own = currentHotels.find(h => h.isOwn);
+      if (!own) return;
+      if (own.status === 'SOLD_OUT') {
+        own.status = 'AVAILABLE';
+        own.lowest_rate = 815000;
+        own.ota_breakdown = { traveloka: 825000, tiket: 825000, agoda: 815000, booking: 830000 };
+      } else {
+        own.status = 'SOLD_OUT';
+        own.lowest_rate = 0;
+        own.ota_breakdown = {};
+      }
+      document.getElementById('lastUpdateText').textContent = nowWITA();
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const checkin = document.getElementById('checkinInput').value;
+      const offset = parseInt(document.getElementById('offsetSelect').value, 10) || 0;
+
+      document.getElementById('activeDatePill').textContent = checkin || '-';
+
+      const ownHotel = currentHotels.find(h => h.isOwn);
+      const competitors = currentHotels.filter(h => !h.isOwn);
+      const openCompetitors = competitors.filter(h => h.status === 'AVAILABLE' && h.lowest_rate > 0);
+
+      // Update Summary Line
+      const ownSoldOut = !ownHotel || ownHotel.status !== 'AVAILABLE' || !ownHotel.lowest_rate || ownHotel.lowest_rate <= 0;
+      const summaryOwnEl = document.getElementById('summaryOwnStatus');
+      if (ownSoldOut) {
+        summaryOwnEl.textContent = 'SOLD OUT / PENUH';
+        summaryOwnEl.className = 'text-rose-600 font-bold';
+      } else {
+        summaryOwnEl.textContent = formatIDR(ownHotel.lowest_rate) + ' (OPEN)';
+        summaryOwnEl.className = 'text-emerald-600 font-bold';
+      }
+
+      document.getElementById('summaryOpenCount').textContent = openCompetitors.length;
+      document.getElementById('summaryTotalComp').textContent = competitors.length;
+
+      const marketAvg = openCompetitors.length > 0
+        ? openCompetitors.reduce((sum, item) => sum + item.lowest_rate, 0) / openCompetitors.length
+        : 0;
+
+      document.getElementById('summaryMarketAvg').textContent = marketAvg > 0 ? formatIDR(marketAvg) : 'N/A';
+
+      if (openCompetitors.length > 0) {
+        const sorted = [...openCompetitors].sort((a, b) => a.lowest_rate - b.lowest_rate);
+        document.getElementById('summaryLowestComp').textContent = `${formatIDR(sorted[0].lowest_rate)} (${sorted[0].name.split(' ')[0]})`;
+      } else {
+        document.getElementById('summaryLowestComp').textContent = 'Semua Penuh';
+      }
+
+      const recEl = document.getElementById('recommendedRateText');
+      if (marketAvg > 0) {
+        const rounded = Math.round((marketAvg + offset) / 5000) * 5000;
+        recEl.textContent = formatIDR(rounded);
+      } else {
+        recEl.textContent = 'BAR Standard';
+      }
+
+      // Render Table Rows
+      const tbody = document.getElementById('rateTableBody');
+      tbody.innerHTML = '';
+
+      const filteredHotels = currentHotels.filter(h => {
+        const isOpen = h.status === 'AVAILABLE' && h.lowest_rate > 0;
+        if (activeStatusFilter === 'AVAILABLE') return isOpen;
+        if (activeStatusFilter === 'SOLD_OUT') return !isOpen;
+        return true;
+      });
+
+      if (filteredHotels.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="py-8 text-center text-slate-500">Tidak ada data properti pada filter status ini.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      filteredHotels.forEach(h => {
+        const isOpen = h.status === 'AVAILABLE' && h.lowest_rate > 0;
+        const ota = h.ota_breakdown || {};
+        const spread = isOpen && marketAvg > 0 ? Math.round(h.lowest_rate - marketAvg) : 0;
+
+        const tr = document.createElement('tr');
+        tr.className = h.isOwn ? 'bg-amber-50/70 hover:bg-amber-50 transition' : 'bg-white hover:bg-slate-50 transition';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 border-r border-slate-200">
+            <div class="flex flex-wrap items-center gap-2">
+              ${h.isOwn ? '<span class="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-phb-amber text-slate-900">PLATINUM</span>' : ''}
+              <span class="font-bold text-slate-800">${h.name}</span>
+            </div>
+            <span class="block text-[11px] text-slate-500 mt-0.5">${h.area}</span>
+          </td>
+          <td class="py-3 px-3 text-center border-r border-slate-200">
+            ${isOpen
+              ? '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>'
+              : '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">SOLD OUT</span>'
+            }
+          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
+            ${isOpen ? formatNum(ota.traveloka) : 'Sold Out'}
+          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
+            ${isOpen ? formatNum(ota.tiket) : 'Sold Out'}
+          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
+            ${isOpen ? formatNum(ota.agoda) : 'Sold Out'}
+          </td>
+          <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-medium' : 'text-rose-400 bg-rose-50/40'}">
+            ${isOpen ? formatNum(ota.booking) : 'Sold Out'}
+          </td>
+          <td class="py-3 px-3 text-right mono font-bold border-r border-slate-200 ${isOpen ? 'bg-amber-50/80 text-amber-900' : 'bg-rose-50 text-rose-600'}">
+            ${isOpen ? formatNum(h.lowest_rate) : 'FULL'}
+          </td>
+          <td class="py-3 px-4 text-right mono font-bold ${!isOpen ? 'text-slate-400' : spread < 0 ? 'text-emerald-600' : spread > 0 ? 'text-rose-600' : 'text-phb-blue'}">
+            ${!isOpen ? '-' : (spread > 0 ? '+' : '') + formatNum(spread)}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleDateOrFilterChange() {
+      if (apiEndpoint) {
+        fetchLiveRates();
+      } else {
+        document.getElementById('lastUpdateText').textContent = nowWITA();
+        renderDashboard();
+      }
+    }
+
+    function configureAutoPoll() {
+      if (pollTimer) clearInterval(pollTimer);
+      const ms = parseInt(document.getElementById('autoPollSelect').value, 10) || 0;
+      if (ms > 0) pollTimer = setInterval(fetchLiveRates, ms);
+    }
+
+    function openConfigModal() {
+      document.getElementById('apiUrlInput').value = apiEndpoint;
+      document.getElementById('configFeedback').textContent = apiEndpoint
+        ? `Terhubung ke: ${apiEndpoint}`
+        : 'Belum ada URL backend yang disimpan (menggunakan data uji coba lokal).';
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveApiConfig() {
+      apiEndpoint = document.getElementById('apiUrlInput').value.trim();
+      localStorage.setItem('bpn_safe_live_endpoint', apiEndpoint);
+      syncEndpointBadge();
+      closeConfigModal();
+      fetchLiveRates();
+    }
+
+    function resetToDemo() {
+      apiEndpoint = '';
+      localStorage.removeItem('bpn_safe_live_endpoint');
+      currentHotels = JSON.parse(JSON.stringify(initialSampleHotels));
+      syncEndpointBadge();
+      closeConfigModal();
+      renderDashboard();
+    }
+
+    function exportCSV() {
+      const checkin = document.getElementById('checkinInput').value;
+      let csv = 'CheckIn,Hotel,Area,Status,Traveloka,Tiket,Agoda,Booking,LowestRate\n';
+      currentHotels.forEach(h => {
+        const o = h.ota_breakdown || {};
+        csv += `${checkin},"${h.name}","${h.area}",${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `PHB_BPN_4Star_Rates_${checkin}.csv`;
+      link.click();
+    }
+
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      navigator.clipboard.writeText(el.innerText);
+      alert('Kode berhasil disalin!');
+    }
+
+    lucide.createIcons();
+    syncEndpointBadge();
+    document.getElementById('lastUpdateText').textContent = nowWITA();
+    renderDashboard();
+    if (apiEndpoint) fetchLiveRates();
+  </script>
+</body>
+</html>
