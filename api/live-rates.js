@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
     const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
     const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-    // 1. Read history logs from Supabase (0 SerpApi Quota)
+    // 1. Load history logs from Supabase (0 SerpApi Quota)
     if (loadLogsOnly) {
       if (!sbUrl || !sbKey) return res.status(200).json({ logs: [] });
       try {
@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // 2. Read saved snapshot from Supabase per check-in date (0 SerpApi Quota)
+    // 2. Load saved snapshot from Supabase (0 SerpApi Quota)
     if (cachedOnly) {
       if (!sbUrl || !sbKey) return res.status(200).json({ cached: false, hotels: [] });
       try {
@@ -98,24 +98,27 @@ module.exports = async function handler(req, res) {
       { id: 'whiz', group: 'EXTENDED', fallbackRate: 360000, matchKeys: ['whiz'], name: 'Whiz Prime Hotel Balikpapan', area: 'Jl. Jenderal Sudirman', isOwn: false }
     ];
 
-    const MAX_STANDARD_ROOM_RATE = 3500000;
+    // Tanpa batas atas harga (No upper cap) agar 100% sama dengan tarikan OTA
     const toNum = (v) => {
       if (typeof v === 'number') {
-        return Number.isFinite(v) && v > 100000 && v <= MAX_STANDARD_ROOM_RATE ? Math.round(v) : 0;
+        return Number.isFinite(v) && v >= 50000 ? Math.round(v) : 0;
       }
       if (!v) return 0;
       const cleaned = String(v).replace(/[^0-9]/g, '');
       const n = Number(cleaned);
-      return Number.isFinite(n) && n > 100000 && n <= MAX_STANDARD_ROOM_RATE ? Math.round(n) : 0;
+      return Number.isFinite(n) && n >= 50000 ? Math.round(n) : 0;
     };
 
-    const extractPerNightPrice = (obj) => {
+    const extractRealOtaPrice = (obj) => {
       if (!obj || typeof obj !== 'object') return 0;
       return (
         toNum(obj.rate_per_night && obj.rate_per_night.extracted_lowest) ||
         toNum(obj.rate_per_night && obj.rate_per_night.lowest) ||
+        toNum(obj.total_rate && obj.total_rate.extracted_lowest) ||
+        toNum(obj.total_rate && obj.total_rate.lowest) ||
         toNum(obj.extracted_lowest) ||
         toNum(obj.lowest) ||
+        toNum(obj.extracted_price) ||
         toNum(obj.price) ||
         0
       );
@@ -123,12 +126,12 @@ module.exports = async function handler(req, res) {
 
     const hasAnyOfferPrice = (obj) => {
       if (!obj || typeof obj !== 'object') return false;
-      if (extractPerNightPrice(obj) > 0) return true;
+      if (extractRealOtaPrice(obj) > 0) return true;
       const offers = [
         ...(Array.isArray(obj.featured_prices) ? obj.featured_prices : []),
         ...(Array.isArray(obj.prices) ? obj.prices : [])
       ];
-      return offers.some((o) => extractPerNightPrice(o) > 0);
+      return offers.some((o) => extractRealOtaPrice(o) > 0);
     };
 
     async function fetchPlatinumLive() {
@@ -255,7 +258,6 @@ module.exports = async function handler(req, res) {
       return { item, found };
     });
 
-    // Pastikan Platinum Hotel mendapat data live OTA meskipun tidak masuk 20 hasil umum kota
     const platIdx = matchedList.findIndex((x) => x.item.isOwn);
     if (platIdx !== -1 && !hasAnyOfferPrice(matchedList[platIdx].found)) {
       const platDirect = await fetchPlatinumLive();
@@ -272,7 +274,7 @@ module.exports = async function handler(req, res) {
 
       const ota = { traveloka: 0, tiket: 0, agoda: 0, booking: 0 };
       const otaMap = new Map();
-      let bestPrice = extractPerNightPrice(found);
+      let bestPrice = extractRealOtaPrice(found);
       let bestSource = String((found && found.rate_per_night && found.rate_per_night.source) || (found && found.source) || '').trim();
       let isEstimated = false;
 
@@ -280,7 +282,7 @@ module.exports = async function handler(req, res) {
         if (!offer) continue;
         const src = String(offer.source || '').trim();
         const lowSrc = src.toLowerCase();
-        const val = extractPerNightPrice(offer);
+        const val = extractRealOtaPrice(offer);
         if (!val) continue;
 
         if (!bestPrice || val < bestPrice) {
@@ -302,19 +304,8 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      if (bestPrice > 0) {
-        const ceiling = bestPrice * 1.6;
-        if (ota.traveloka > ceiling) ota.traveloka = bestPrice;
-        if (ota.tiket > ceiling) ota.tiket = bestPrice;
-        if (ota.agoda > ceiling) ota.agoda = bestPrice;
-        if (ota.booking > ceiling) ota.booking = bestPrice;
-      }
-
       const allOtaRates = Array.from(otaMap.entries())
-        .map(([source, rate]) => ({
-          source,
-          rate: bestPrice > 0 && rate > bestPrice * 1.6 ? bestPrice : rate
-        }))
+        .map(([source, rate]) => ({ source, rate }))
         .sort((a, b) => a.rate - b.rate);
 
       if (!bestPrice && allOtaRates.length > 0) {
@@ -326,13 +317,6 @@ module.exports = async function handler(req, res) {
         bestPrice = item.fallbackRate;
         bestSource = 'Benchmark Rate';
         isEstimated = true;
-      }
-
-      if (!ota.traveloka && !ota.tiket && !ota.agoda && !ota.booking && bestPrice > 0) {
-        ota.traveloka = bestPrice;
-        ota.tiket = Math.round((bestPrice * 1.01) / 1000) * 1000;
-        ota.agoda = Math.round((bestPrice * 1.02) / 1000) * 1000;
-        ota.booking = Math.round((bestPrice * 1.04) / 1000) * 1000;
       }
 
       return {
