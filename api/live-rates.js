@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
   const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
+  // 1. Read history logs from Supabase (0 SerpApi Quota)
   if (loadLogsOnly) {
     if (!sbUrl || !sbKey) return res.status(200).json({ logs: [] });
     try {
@@ -30,6 +31,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // 2. Read saved snapshot from Supabase per check-in date (0 SerpApi Quota)
   if (cachedOnly) {
     if (!sbUrl || !sbKey) return res.status(200).json({ cached: false, hotels: [] });
     try {
@@ -103,6 +105,32 @@ export default async function handler(req, res) {
     );
   };
 
+  async function fetchPlatinumLive() {
+    try {
+      const u =
+        `https://serpapi.com/search.json?engine=google_hotels` +
+        `&q=${encodeURIComponent('Platinum Hotel & Convention Hall Balikpapan')}` +
+        `&check_in_date=${checkin}&check_out_date=${checkout}` +
+        `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
+      const r = await fetch(u);
+      const d = await r.json();
+      if (!d || d.error) return null;
+
+      if (d.rate_per_night || Array.isArray(d.featured_prices) || Array.isArray(d.prices)) {
+        return d;
+      }
+      if (Array.isArray(d.properties) && d.properties.length > 0) {
+        const matched = d.properties.find((p) =>
+          String(p?.name || '').toLowerCase().includes('platinum')
+        );
+        return matched || d.properties[0];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
     if (!sbUrl || !sbUrl.startsWith('http') || !sbKey) return false;
 
@@ -133,7 +161,7 @@ export default async function handler(req, res) {
       recommendedBar,
       openCount: openCompetitors.length,
       totalComp: competitors.length,
-      alertSummary: 'Full Compset Active (No Sold Out)'
+      alertSummary: ownHotel?.is_estimated ? 'Platinum Estimated • Compset Active' : 'Platinum Live • Compset Active'
     };
 
     const headers = {
@@ -188,7 +216,7 @@ export default async function handler(req, res) {
     const props = Array.isArray(json.properties) ? json.properties : [];
     const usedNames = new Set();
 
-    const hotels = tracked.map((item) => {
+    const matchedList = tracked.map((item) => {
       const found = props.find((p) => {
         const raw = String(p?.name || '').trim();
         if (!raw || usedNames.has(raw)) return false;
@@ -196,7 +224,19 @@ export default async function handler(req, res) {
         return item.matchKeys.some((k) => low.includes(k.toLowerCase()));
       });
       if (found?.name) usedNames.add(String(found.name).trim());
+      return { item, found };
+    });
 
+    // Khusus untuk Platinum Hotel: jika tidak muncul di 20 hasil umum kota, tarik langsung kartu propertinya (+1 kuota saja)
+    const platIdx = matchedList.findIndex((x) => x.item.isOwn);
+    if (platIdx !== -1 && !extractPrice(matchedList[platIdx].found)) {
+      const platDirect = await fetchPlatinumLive();
+      if (platDirect) {
+        matchedList[platIdx].found = platDirect;
+      }
+    }
+
+    const hotels = matchedList.map(({ item, found }) => {
       const offers = [
         ...(Array.isArray(found?.featured_prices) ? found.featured_prices : []),
         ...(Array.isArray(found?.prices) ? found.prices : [])
@@ -243,7 +283,6 @@ export default async function handler(req, res) {
         bestSource = allOtaRates[0].source;
       }
 
-      // Pastikan tidak pernah berstatus SOLD OUT: gunakan fallback rate jika tidak ada rate live
       if (!bestPrice) {
         bestPrice = item.fallbackRate;
         bestSource = 'Benchmark Rate';
