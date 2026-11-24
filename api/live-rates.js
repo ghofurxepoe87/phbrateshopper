@@ -15,7 +15,8 @@ export default async function handler(req, res) {
     {
       id: 'platinum',
       group: 'CORE',
-      matchKeys: ['platinum hotel', 'platinum balikpapan', 'platinum'],
+      searchQuery: 'Platinum Hotel & Convention Hall Balikpapan',
+      matchKeys: ['platinum'],
       name: 'Platinum Hotel & Convention Hall Balikpapan',
       area: 'Jl. Soekarno Hatta, Balikpapan',
       isOwn: true
@@ -24,6 +25,7 @@ export default async function handler(req, res) {
     {
       id: 'bluesky',
       group: 'CORE',
+      searchQuery: 'Blue Sky Hotel Balikpapan',
       matchKeys: ['blue sky'],
       name: 'Blue Sky Hotel Balikpapan',
       area: 'Kebun Sayur, Balikpapan',
@@ -32,7 +34,8 @@ export default async function handler(req, res) {
     {
       id: 'swissbel_balcony',
       group: 'CORE',
-      matchKeys: ['swiss-belhotel balcony', 'swiss belhotel balcony', 'swiss-belhotel', 'swiss belhotel'],
+      searchQuery: 'Swiss-Belhotel Balikpapan',
+      matchKeys: ['swiss-belhotel', 'swiss belhotel'],
       name: 'Swiss-Belhotel Balikpapan',
       area: 'Balikpapan Ocean Square (BOS)',
       isOwn: false
@@ -40,6 +43,7 @@ export default async function handler(req, res) {
     {
       id: 'novotel',
       group: 'CORE',
+      searchQuery: 'Novotel Balikpapan',
       matchKeys: ['novotel'],
       name: 'Novotel Balikpapan',
       area: 'Jl. Brigjen Ery Suparjan',
@@ -48,6 +52,7 @@ export default async function handler(req, res) {
     {
       id: 'grand_jatra',
       group: 'CORE',
+      searchQuery: 'Grand Jatra Hotel Balikpapan',
       matchKeys: ['grand jatra', 'jatra'],
       name: 'Grand Jatra Hotel Balikpapan',
       area: 'e-Walk / Balikpapan SuperBlock',
@@ -56,6 +61,7 @@ export default async function handler(req, res) {
     {
       id: 'grand_tjokro',
       group: 'CORE',
+      searchQuery: 'Grand Tjokro Balikpapan',
       matchKeys: ['grand tjokro', 'tjokro'],
       name: 'Grand Tjokro Balikpapan',
       area: 'Jl. Marsma R. Iswahyudi',
@@ -64,6 +70,7 @@ export default async function handler(req, res) {
     {
       id: 'astara',
       group: 'CORE',
+      searchQuery: 'Astara Hotel Balikpapan',
       matchKeys: ['astara'],
       name: 'Astara Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -73,6 +80,7 @@ export default async function handler(req, res) {
     {
       id: 'gran_senyiur',
       group: 'EXTENDED',
+      searchQuery: 'Gran Senyiur Balikpapan',
       matchKeys: ['gran senyiur', 'senyiur'],
       name: 'Gran Senyiur Balikpapan',
       area: 'Jl. ARS Moh. No. 1-7',
@@ -81,6 +89,7 @@ export default async function handler(req, res) {
     {
       id: 'horison_ultima',
       group: 'EXTENDED',
+      searchQuery: 'Horison Ultima Benua Balikpapan',
       matchKeys: ['horison ultima', 'horison'],
       name: 'Horison Ultima Benua Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -89,6 +98,7 @@ export default async function handler(req, res) {
     {
       id: 'penta_city',
       group: 'EXTENDED',
+      searchQuery: 'Penta City Hotel Balikpapan',
       matchKeys: ['penta city', 'penta'],
       name: 'Penta City Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -97,6 +107,7 @@ export default async function handler(req, res) {
     {
       id: 'golden_tulip',
       group: 'EXTENDED',
+      searchQuery: 'Golden Tulip Balikpapan Hotel & Suites',
       matchKeys: ['golden tulip'],
       name: 'Golden Tulip Balikpapan Hotel & Suites',
       area: 'Jl. Jenderal Sudirman',
@@ -105,6 +116,7 @@ export default async function handler(req, res) {
     {
       id: 'dprima',
       group: 'EXTENDED',
+      searchQuery: "D'Prima Hotel Balikpapan",
       matchKeys: ['d prima', 'dprima', 'd’prima', 'prima city'],
       name: "D'Prima Hotel Balikpapan",
       area: 'Jl. Jenderal Sudirman',
@@ -113,6 +125,7 @@ export default async function handler(req, res) {
     {
       id: 'pacific',
       group: 'EXTENDED',
+      searchQuery: 'Pacific Hotel Balikpapan',
       matchKeys: ['pacific'],
       name: 'Pacific Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -121,6 +134,7 @@ export default async function handler(req, res) {
     {
       id: 'sagita',
       group: 'EXTENDED',
+      searchQuery: 'Sagita Hotel Balikpapan',
       matchKeys: ['sagita'],
       name: 'Sagita Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -129,6 +143,7 @@ export default async function handler(req, res) {
     {
       id: 'ibis',
       group: 'EXTENDED',
+      searchQuery: 'ibis Balikpapan',
       matchKeys: ['ibis balikpapan', 'ibis'],
       name: 'ibis Balikpapan',
       area: 'Jl. Brigjen Ery Suparjan',
@@ -137,6 +152,7 @@ export default async function handler(req, res) {
     {
       id: 'quest',
       group: 'EXTENDED',
+      searchQuery: 'Quest Hotel Balikpapan',
       matchKeys: ['quest hotel', 'quest'],
       name: 'Quest Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -145,6 +161,7 @@ export default async function handler(req, res) {
     {
       id: 'neo_plus',
       group: 'EXTENDED',
+      searchQuery: 'Hotel NEO+ Balikpapan',
       matchKeys: ['neo+', 'neo plus', 'hotel neo'],
       name: 'Hotel NEO+ Balikpapan',
       area: 'Jl. Podomoro / MT Haryono',
@@ -153,6 +170,7 @@ export default async function handler(req, res) {
     {
       id: 'zurich',
       group: 'EXTENDED',
+      searchQuery: 'Zurich Hotel Balikpapan',
       matchKeys: ['zurich'],
       name: 'Zurich Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -161,6 +179,7 @@ export default async function handler(req, res) {
     {
       id: 'swissbel_inn',
       group: 'EXTENDED',
+      searchQuery: 'Swiss-Belinn Balikpapan',
       matchKeys: ['swiss-belinn', 'swiss belinn'],
       name: 'Swiss-Belinn Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -169,6 +188,7 @@ export default async function handler(req, res) {
     {
       id: 'max_one',
       group: 'EXTENDED',
+      searchQuery: 'MaxOneHotels at Balikpapan',
       matchKeys: ['maxone', 'max one'],
       name: 'MaxOneHotels at Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -177,6 +197,7 @@ export default async function handler(req, res) {
     {
       id: 'whiz',
       group: 'EXTENDED',
+      searchQuery: 'Whiz Prime Hotel Balikpapan',
       matchKeys: ['whiz prime', 'whiz hotel', 'whiz'],
       name: 'Whiz Prime Hotel Balikpapan',
       area: 'Jl. Jenderal Sudirman',
@@ -208,6 +229,29 @@ export default async function handler(req, res) {
       0
     );
   };
+
+  async function fetchDirectHotel(queryText) {
+    try {
+      const u =
+        `https://serpapi.com/search.json?engine=google_hotels` +
+        `&q=${encodeURIComponent(queryText)}` +
+        `&check_in_date=${checkin}&check_out_date=${checkout}` +
+        `&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
+      const r = await fetch(u);
+      const d = await r.json();
+      if (!d || d.error) return null;
+      // Google Hotels direct entity response memiliki rate_per_night / featured_prices / prices langsung di root
+      if (d.rate_per_night || Array.isArray(d.featured_prices) || Array.isArray(d.prices)) {
+        return d;
+      }
+      if (Array.isArray(d.properties) && d.properties.length > 0) {
+        return d.properties[0];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
 
   async function fetchPropertyDetail(propertyToken, propTitle) {
     if (!propertyToken) return null;
@@ -334,10 +378,21 @@ export default async function handler(req, res) {
       return { item, found };
     });
 
+    // Untuk Platinum & grup CORE yang tidak muncul di 20 hasil umum, tarik langsung berdasarkan nama hotel
+    const resolvedEntries = await Promise.all(
+      matchedEntries.map(async ({ item, found }) => {
+        if (!found && (item.isOwn || item.group === 'CORE')) {
+          const direct = await fetchDirectHotel(item.searchQuery);
+          return { item, found: direct, isDirect: Boolean(direct) };
+        }
+        return { item, found, isDirect: false };
+      })
+    );
+
     let detailBudget = 8;
     const detailResults = await Promise.all(
-      matchedEntries.map(({ found }) => {
-        if (found?.property_token && detailBudget > 0) {
+      resolvedEntries.map(({ found, isDirect }) => {
+        if (!isDirect && found?.property_token && detailBudget > 0) {
           detailBudget -= 1;
           return fetchPropertyDetail(found.property_token, found.name);
         }
@@ -345,7 +400,7 @@ export default async function handler(req, res) {
       })
     );
 
-    const hotels = matchedEntries.map(({ item, found }, idx) => {
+    const hotels = resolvedEntries.map(({ item, found }, idx) => {
       const detail = detailResults[idx];
 
       const basePrice =
