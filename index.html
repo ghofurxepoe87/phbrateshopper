@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Live Rate Shopper & Channel Suite — Platinum Hotel & Convention Hall Balikpapan</title>
+  <title>Live Rate Shopper — Platinum Hotel & Convention Hall Balikpapan</title>
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
   <link rel="shortcut icon" type="image/png" href="./favicon.png" />
   <link rel="apple-touch-icon" href="./favicon.png" />
@@ -68,7 +68,7 @@
       overscroll-behavior-x: contain;
     }
     @media (max-width: 639px) {
-      input[type="date"], input[type="number"], input[type="text"], select {
+      input[type="date"], select {
         font-size: 14px !important;
       }
     }
@@ -94,7 +94,7 @@
           </div>
 
           <div class="min-w-0">
-            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper & Channel Suite</h1>
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper</h1>
             <span id="modeBadge" class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5">
               <i data-lucide="database" class="w-3 h-3 shrink-0"></i>
               <span id="modeBadgeText">Cache Ready</span>
@@ -120,92 +120,69 @@
   <!-- Main Workspace -->
   <main class="flex-1 max-w-[1540px] w-full mx-auto pt-3 sm:pt-4 safe-main space-y-3 sm:space-y-4">
 
-    <!-- Date & Platinum Rate Bar -->
-    <section class="bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm flex flex-wrap items-center justify-between gap-2.5 text-xs">
-      <div class="flex flex-wrap items-center gap-2">
+    <!-- Sub-Toolbar: Date, View Tabs & Filters -->
+    <section class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5 sm:gap-3">
+      <!-- Check-In Date Selector -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center justify-between sm:justify-start gap-2 text-xs">
         <div class="flex items-center gap-1.5 text-slate-600 font-medium">
           <i data-lucide="calendar" class="w-4 h-4 text-phb-blue shrink-0"></i>
           <span>Check-In:</span>
         </div>
-        <input type="date" id="checkinInput" onchange="handleDateChange()" class="min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-phb-blue" />
-        <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg mono">-</span>
+        <div class="flex items-center gap-2">
+          <input type="date" id="checkinInput" onchange="handleDateChange()" class="min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-phb-blue" />
+          <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg mono">-</span>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-        <label for="platinumManualInput" class="text-amber-900 font-bold whitespace-nowrap">Platinum Rate:</label>
-        <input
-          type="number"
-          id="platinumManualInput"
-          step="5000"
-          min="100000"
-          placeholder="Auto / e.g. 850000"
-          class="mono min-h-[36px] flex-1 sm:w-36 border border-amber-300 bg-amber-50/60 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:border-phb-blue"
-        />
-        <button type="button" onclick="applyManualPlatinumRate()" class="min-h-[36px] bg-phb-amber hover:bg-amber-400 text-slate-900 font-bold px-3 py-1 rounded-lg transition touch-manipulation">
-          Apply
+      <!-- 4-Tab View Switcher -->
+      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-2 sm:flex sm:items-center gap-1 text-xs">
+        <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[36px] px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
+          Daily Rate & Parity
         </button>
-        <button type="button" onclick="clearManualPlatinumRate()" class="min-h-[36px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-2.5 py-1 rounded-lg transition touch-manipulation">
-          Auto
+        <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          7-Day Rate Grid
+        </button>
+        <button type="button" onclick="setViewMode('DASHBOARD')" id="viewDASHBOARD" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          Analytics & Reports
+        </button>
+        <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          History Log
         </button>
       </div>
-    </section>
 
-    <!-- 6-Tab Navigation Switcher -->
-    <section class="bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 text-xs">
-      <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
-        Daily Rate & Parity
-      </button>
-      <button type="button" onclick="setViewMode('INVENTORY')" id="viewINVENTORY" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-        Inventory & Derived BAR
-      </button>
-      <button type="button" onclick="setViewMode('YIELD')" id="viewYIELD" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-        Dynamic Yield & Direct
-      </button>
-      <button type="button" onclick="setViewMode('DASHBOARD')" id="viewDASHBOARD" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-        Analytics & Reports
-      </button>
-      <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-        7-Day Compset Grid
-      </button>
-      <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-        History Log
-      </button>
-    </section>
-
-    <!-- Filters & Suggested BAR -->
-    <section class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center justify-between gap-2 text-xs">
-      <div class="flex flex-wrap items-center gap-2 flex-1">
-        <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">Set:</span>
-          <select id="groupFilterSelect" onchange="renderActiveView()" class="min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+      <!-- Filters & Suggested BAR -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center gap-2 text-xs">
+        <div class="flex items-center gap-1 flex-1 min-w-[130px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Set:</span>
+          <select id="groupFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
             <option value="ALL">All Hotels</option>
             <option value="CORE">Core Set</option>
             <option value="EXTENDED">Extended Set</option>
           </select>
         </div>
 
-        <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">Status:</span>
-          <select id="statusFilterSelect" onchange="renderActiveView()" class="min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+        <div class="flex items-center gap-1 flex-1 min-w-[115px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Status:</span>
+          <select id="statusFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
             <option value="ALL">All Active</option>
-            <option value="LIVE">Live / Own</option>
+            <option value="LIVE">Live OTA</option>
             <option value="ESTIMATED">Estimated</option>
           </select>
         </div>
 
         <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">BAR:</span>
+          <span class="text-slate-500 font-medium shrink-0">BAR:</span>
           <select id="offsetSelect" onchange="renderActiveView()" class="mono min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
             <option value="-25000">-25,000</option>
             <option value="0" selected>0 (Parity)</option>
             <option value="25000">+25,000</option>
           </select>
         </div>
-      </div>
 
-      <div class="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto bg-amber-50 border border-amber-300 rounded-lg px-3 py-1.5">
-        <span class="text-amber-800 font-semibold">Suggested BAR:</span>
-        <span id="recommendedRateText" class="mono font-bold text-amber-900">IDR 0</span>
+        <div class="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1.5 sm:py-1">
+          <span class="text-amber-800 font-semibold">Suggested BAR:</span>
+          <span id="recommendedRateText" class="mono font-bold text-amber-900">IDR 0</span>
+        </div>
       </div>
     </section>
 
@@ -219,10 +196,10 @@
           <div class="flex flex-wrap items-center gap-2">
             <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">RATE & PARITY INTELLIGENCE SUMMARY</h2>
             <span class="px-2 py-0.5 text-[10px] font-bold bg-sky-50 text-phb-blue rounded border border-sky-200">PLATINUM BALIKPAPAN</span>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">ZERO SOLD-OUT MODE</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">AUTO OTA FEED</span>
           </div>
           <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            Real-time rate positioning, inventory allotment, dynamic yield rules, and channel pickup analytics.
+            Automated OTA rate positioning, channel parity monitoring, and BAR recommendation for Platinum Hotel & Convention Hall Balikpapan.
           </p>
         </div>
 
@@ -298,28 +275,28 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 leading-relaxed">
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">Platinum Rate & Own BAR Input:</strong> Enter Platinum Hotel's exact PMS/extranet rate in the <strong>Platinum Rate</strong> box and click <strong>Apply</strong> (0 quota) to benchmark against competitors, or click <strong>Auto</strong> to use the OTA feed.
+            <strong class="text-slate-900">Platinum Rate Index:</strong> Automatically pulls Platinum Hotel & Convention Hall Balikpapan's live OTA rate and compares it against the competitor set average (100% = equal to market average).
           </div>
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">Platinum Rate Index:</strong> Compares Platinum Hotel's rate against the competitor average (100% = equal to market average) and displays the IDR spread (+ above / - below average).
+            <strong class="text-slate-900">Compset Avg & Spread:</strong> Displays the average daily rate across tracked Balikpapan competitor hotels and identifies the lowest-priced competitor property.
           </div>
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">Compset Avg & Spread:</strong> Average daily rate across tracked Balikpapan competitors and the lowest-priced competitor property for benchmarking.
+            <strong class="text-slate-900">OTA Channel Parity:</strong> Tracks rate consistency across Traveloka, Tiket.com, Agoda, and Booking.com, flagging disparity alerts when channel spreads reach IDR 35,000 or more.
           </div>
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">OTA Channel Parity:</strong> Monitors parity across Traveloka, Tiket.com, Agoda, and Booking.com, flagging disparity alerts when channel gaps reach IDR 35,000 or more.
+            <strong class="text-slate-900">BAR Strategy & Logs:</strong> Calculates the suggested Best Available Rate (rounded to IDR 5,000) and displays total recorded OTA scan snapshots.
           </div>
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">Inventory & Derived BAR:</strong> Manage room type allotments, Stop Sell status, and derived rate plans (Room Only, Early Bird, Corporate) based on Platinum's active BAR.
+            <strong class="text-slate-900">Zero Sold-Out Mode (AVAILABLE vs ESTIMATED):</strong> Properties returning live OTA offers display <strong>AVAILABLE</strong>, while dates without open OTA listings carry forward the last known rate as <strong>ESTIMATED</strong>.
           </div>
           <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
-            <strong class="text-slate-900">Dynamic Yield & Direct:</strong> Configure occupancy-based BAR lift rules and record direct website/walk-in reservations with zero OTA commission.
+            <strong class="text-slate-900">Cache-First Sync:</strong> Switching dates loads saved snapshots from Supabase (0 API quota); clicking <strong>Check OTA Now</strong> fetches fresh live OTA rates and updates cloud logs.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 1: DAILY RATE & PARITY TABLE -->
+    <!-- VIEW 1: DAILY RATE & PARITY TABLE -->
     <section id="panelDAILY" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       <div class="table-scroll">
         <table class="w-full min-w-[920px] text-left border-collapse">
@@ -346,89 +323,26 @@
       </div>
     </section>
 
-    <!-- TAB 2: INVENTORY & DERIVED BAR -->
-    <section id="panelINVENTORY" class="hidden space-y-4">
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div>
-            <h3 class="text-xs sm:text-sm font-extrabold uppercase text-slate-800">Room Allotment & Derived Rate Plans — Platinum Hotel</h3>
-            <p class="text-[11px] text-slate-500">Auto-calculates Room Only (-100k), Early Bird (-10%), and Corporate (-12%) from Platinum's active BAR.</p>
-          </div>
-          <button type="button" onclick="saveInventoryState()" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition touch-manipulation">
-            Save Allotment & Plans
-          </button>
+    <!-- VIEW 2: 7-DAY RATE GRID -->
+    <section id="panelGRID7" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 bg-sky-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div>
+          <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
+          <span class="text-slate-500 ml-2">Click a date to load cached data or click <strong>Scan 7 Days</strong>.</span>
         </div>
-
-        <div class="table-scroll">
-          <table class="w-full min-w-[780px] text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-phb-blue text-white text-[11px] font-bold">
-                <th class="py-3 px-4">Room Category</th>
-                <th class="py-3 px-3 text-center">Allotment</th>
-                <th class="py-3 px-3 text-center">Channel Status</th>
-                <th class="py-3 px-3 text-right">BAR (Incl. Breakfast)</th>
-                <th class="py-3 px-3 text-right">Room Only (-100k)</th>
-                <th class="py-3 px-3 text-right">Early Bird (-10%)</th>
-                <th class="py-3 px-3 text-right">Corporate (-12%)</th>
-              </tr>
-            </thead>
-            <tbody id="inventoryTableBody" class="divide-y divide-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: DYNAMIC YIELD & DIRECT -->
-    <section id="panelYIELD" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <!-- Dynamic Yield Rules -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 text-xs">
-        <div class="border-b border-slate-100 pb-2.5">
-          <h3 class="text-sm font-extrabold uppercase text-slate-800">Dynamic Yield & Auto-BAR Simulator</h3>
-          <p class="text-[11px] text-slate-500">Adjust hotel occupancy to simulate automatic BAR adjustments.</p>
-        </div>
-
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label for="occupancySlider" class="font-bold text-slate-700">Current Occupancy Forecast:</label>
-            <span id="occupancyValueText" class="mono font-extrabold text-phb-blue text-sm">72%</span>
-          </div>
-          <input type="range" id="occupancySlider" min="20" max="100" value="72" oninput="renderYieldSimulator()" class="w-full accent-phb-blue" />
-        </div>
-
-        <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 space-y-1">
-          <div class="text-[11px] font-bold uppercase text-amber-900">Active Yield Rule</div>
-          <div id="yieldRuleActiveText" class="font-bold text-slate-800">High Demand (70% - 84%): +IDR 50,000 BAR Lift</div>
-          <div class="pt-1 text-slate-600">Yield-Adjusted BAR: <strong id="yieldAdjustedBarText" class="mono text-amber-900">IDR 0</strong></div>
-        </div>
-      </div>
-
-      <!-- Direct Reservation Quick Entry -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3 text-xs">
-        <div class="border-b border-slate-100 pb-2.5">
-          <h3 class="text-sm font-extrabold uppercase text-slate-800">Direct Booking Entry (0% OTA Commission)</h3>
-          <p class="text-[11px] text-slate-500">Log direct phone, WhatsApp, or website reservations.</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <div>
-            <label class="block font-semibold text-slate-600 mb-1">Guest / Company Name</label>
-            <input type="text" id="directGuestInput" placeholder="e.g. PT Pertamina / Mr. Budi" class="w-full min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-slate-900" />
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-600 mb-1">Room Nights</label>
-            <input type="number" id="directNightsInput" min="1" value="1" class="mono w-full min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-slate-900" />
-          </div>
-        </div>
-
-        <button type="button" onclick="addDirectBooking()" class="min-h-[38px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-lg transition touch-manipulation">
-          Record Direct Reservation
+        <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
+          Scan 7 Days
         </button>
-
-        <div id="directBookingsList" class="space-y-1.5 pt-1 max-h-40 overflow-y-auto"></div>
+      </div>
+      <div class="table-scroll">
+        <table class="w-full min-w-[760px] text-left border-collapse">
+          <thead id="grid7Head" class="bg-phb-blue text-white text-[11px] font-bold"></thead>
+          <tbody id="grid7Body" class="divide-y divide-slate-200 text-xs"></tbody>
+        </table>
       </div>
     </section>
 
-    <!-- TAB 4: ANALYTICS & REPORTS -->
+    <!-- VIEW 3: ANALYTICS & REPORTS -->
     <section id="panelDASHBOARD" class="hidden space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
@@ -439,7 +353,7 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <span class="block text-[10px] font-bold uppercase text-slate-400">Average Platinum Rate</span>
           <span id="dashAvgPlatinum" class="mono text-xl font-extrabold text-amber-700 mt-1 block">IDR 0</span>
-          <span class="text-[11px] text-slate-500 mt-0.5 block">From logged scan transactions</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">From logged OTA scans</span>
         </div>
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <span class="block text-[10px] font-bold uppercase text-slate-400">Average Compset Rate</span>
@@ -485,7 +399,7 @@
         <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div>
             <strong class="text-slate-800 uppercase">Transaction Report Ledger</strong>
-            <span class="text-slate-500 ml-2">Complete audit of rate shopping transactions & parity spread</span>
+            <span class="text-slate-500 ml-2">Complete audit of OTA rate shopping scans & parity spread</span>
           </div>
           <button type="button" onclick="exportTransactionReportCSV()" class="min-h-[34px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1 rounded-lg transition touch-manipulation">
             Export Transaction Report
@@ -511,26 +425,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: 7-DAY COMPSET GRID -->
-    <section id="panelGRID7" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div class="px-4 py-3 bg-sky-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div>
-          <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
-          <span class="text-slate-500 ml-2">Click a date to load cached data or click <strong>Scan 7 Days</strong>.</span>
-        </div>
-        <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
-          Scan 7 Days (7 Quotas)
-        </button>
-      </div>
-      <div class="table-scroll">
-        <table class="w-full min-w-[760px] text-left border-collapse">
-          <thead id="grid7Head" class="bg-phb-blue text-white text-[11px] font-bold"></thead>
-          <tbody id="grid7Body" class="divide-y divide-slate-200 text-xs"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- TAB 6: HISTORY LOG -->
+    <!-- VIEW 4: HISTORY LOG -->
     <section id="panelHISTORY" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       <div class="px-4 py-3 bg-emerald-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>
@@ -568,6 +463,9 @@
   </main>
 
   <script>
+    // Clear any legacy manual override storage so Platinum always pulls directly from OTA
+    localStorage.removeItem('bpn_manual_platinum_rates');
+
     const defaultTrackedHotels = [
       { id: 'platinum', group: 'CORE', fallbackRate: 850000, name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta, Balikpapan', isOwn: true },
       { id: 'bluesky', group: 'CORE', fallbackRate: 780000, name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur, Balikpapan', isOwn: false },
@@ -598,15 +496,7 @@
     let currentView = 'DAILY';
     let currentHotels = [];
     let dateSnapshots = JSON.parse(localStorage.getItem('bpn_date_snapshots') || '{}');
-    let manualPlatinumRates = JSON.parse(localStorage.getItem('bpn_manual_platinum_rates') || '{}');
     let historyLogs = JSON.parse(localStorage.getItem('bpn_history_logs') || '[]');
-    let roomInventory = JSON.parse(localStorage.getItem('bpn_room_inventory') || JSON.stringify([
-      { code: 'DLX', name: 'Deluxe Room', allotment: 24, open: true, mult: 1.0 },
-      { code: 'EXE', name: 'Executive Room', allotment: 12, open: true, mult: 1.25 },
-      { code: 'JST', name: 'Junior Suite', allotment: 6, open: true, mult: 1.65 },
-      { code: 'PST', name: 'Platinum Suite', allotment: 2, open: true, mult: 2.3 }
-    ]));
-    let directBookings = JSON.parse(localStorage.getItem('bpn_direct_bookings') || '[]');
     let pollTimer = null;
     let trendChartInstance = null;
     let otaChartInstance = null;
@@ -654,37 +544,6 @@
       return d.toISOString().split('T')[0];
     }
 
-    function syncManualInputDisplay(checkin) {
-      const inp = document.getElementById('platinumManualInput');
-      if (!inp) return;
-      const saved = Number(manualPlatinumRates[checkin]) || 0;
-      inp.value = saved > 0 ? saved : '';
-    }
-
-    function applyManualPlatinumRate() {
-      const checkin = getActiveCheckin();
-      const inp = document.getElementById('platinumManualInput');
-      const val = Math.round(Number(inp?.value) || 0);
-      if (val < 100000 || val > 5000000) return;
-
-      manualPlatinumRates[checkin] = val;
-      localStorage.setItem('bpn_manual_platinum_rates', JSON.stringify(manualPlatinumRates));
-
-      const base = currentHotels.length > 0 ? currentHotels : defaultTrackedHotels;
-      currentHotels = normalizeZeroSoldOut(base, checkin);
-      dateSnapshots[checkin] = currentHotels;
-      localStorage.setItem('bpn_date_snapshots', JSON.stringify(dateSnapshots));
-      renderActiveView();
-    }
-
-    function clearManualPlatinumRate() {
-      const checkin = getActiveCheckin();
-      delete manualPlatinumRates[checkin];
-      localStorage.setItem('bpn_manual_platinum_rates', JSON.stringify(manualPlatinumRates));
-      syncManualInputDisplay(checkin);
-      loadCachedSnapshot(checkin);
-    }
-
     function findPreviousKnownHotelRate(hotelId, currentCheckin) {
       const MAX_ROOM = 3500000;
       const dates = Object.keys(dateSnapshots).sort().reverse();
@@ -701,7 +560,6 @@
 
     function normalizeZeroSoldOut(hotels, checkin) {
       const MAX_ROOM = 3500000;
-      const manualOwn = Number(manualPlatinumRates[checkin]) || 0;
       const sourceList = Array.isArray(hotels) && hotels.length > 0 ? hotels : defaultTrackedHotels;
 
       const validRates = sourceList
@@ -715,13 +573,8 @@
       return sourceList.map((h) => {
         let rate = Number(h.lowest_rate) || 0;
         let isEst = Boolean(h.is_estimated);
-        let isManualOwn = false;
 
-        if (h.isOwn && manualOwn > 0) {
-          rate = manualOwn;
-          isEst = false;
-          isManualOwn = true;
-        } else if (rate <= 100000 || rate > MAX_ROOM) {
+        if (rate <= 100000 || rate > MAX_ROOM) {
           const prevRate = findPreviousKnownHotelRate(h.id, checkin);
           rate = (prevRate > 100000 && prevRate <= MAX_ROOM)
             ? prevRate
@@ -730,27 +583,23 @@
         }
 
         const cleanOta = (val, mult) => {
-          if (isManualOwn) return rate;
           const n = Number(val) || 0;
           if (n > 100000 && n <= MAX_ROOM && n <= rate * 1.6) return n;
           return Math.round((rate * mult) / 1000) * 1000;
         };
 
         const ota = h.ota_breakdown || {};
-        const filteredAllOta = isManualOwn
-          ? [{ source: 'Platinum Direct BAR', rate }]
-          : Array.isArray(h.all_ota_rates)
-            ? h.all_ota_rates.filter((x) => {
-                const val = Number(x.rate);
-                return val > 100000 && val <= MAX_ROOM && val <= rate * 1.6;
-              })
-            : [];
+        const filteredAllOta = Array.isArray(h.all_ota_rates)
+          ? h.all_ota_rates.filter((x) => {
+              const val = Number(x.rate);
+              return val > 100000 && val <= MAX_ROOM && val <= rate * 1.6;
+            })
+          : [];
 
         return {
           ...h,
           status: 'AVAILABLE',
           is_estimated: isEst,
-          is_manual_own: isManualOwn,
           lowest_rate: rate,
           all_ota_rates: filteredAllOta,
           ota_breakdown: {
@@ -771,14 +620,14 @@
 
     function setViewMode(mode) {
       currentView = mode;
-      ['DAILY', 'INVENTORY', 'YIELD', 'DASHBOARD', 'GRID7', 'HISTORY'].forEach((m) => {
+      ['DAILY', 'GRID7', 'DASHBOARD', 'HISTORY'].forEach((m) => {
         const panel = document.getElementById('panel' + m);
         const btn = document.getElementById('view' + m);
         if (panel) panel.classList.toggle('hidden', m !== mode);
         if (btn) {
           btn.className = m === mode
-            ? 'min-h-[38px] px-2.5 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation'
-            : 'min-h-[38px] px-2.5 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation';
+            ? 'min-h-[36px] px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation'
+            : 'min-h-[36px] px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation';
         }
       });
       renderActiveView();
@@ -786,19 +635,18 @@
 
     async function loadCachedSnapshot(targetDate = null) {
       const checkin = targetDate || getActiveCheckin();
-      syncManualInputDisplay(checkin);
       const badge = document.getElementById('modeBadge');
       const badgeText = document.getElementById('modeBadgeText');
 
       if (Array.isArray(dateSnapshots[checkin]) && dateSnapshots[checkin].length > 0) {
         currentHotels = normalizeZeroSoldOut(dateSnapshots[checkin], checkin);
         if (badge) badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5';
-        if (badgeText) badgeText.textContent = 'Supabase / Local Cache';
+        if (badgeText) badgeText.textContent = 'Saved Snapshot';
         renderActiveView();
       } else {
         currentHotels = normalizeZeroSoldOut(defaultTrackedHotels, checkin);
         if (badge) badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-slate-600 text-white shadow-sm mt-0.5';
-        if (badgeText) badgeText.textContent = 'Benchmark Ready (0 Quota)';
+        if (badgeText) badgeText.textContent = 'Ready (0 Quota)';
         renderActiveView();
       }
 
@@ -992,117 +840,6 @@
       document.getElementById('summaryTxnCount').textContent = `${historyLogs.length} Logged Scans • ${m.activeCompetitors.length}/${m.competitors.length} Active`;
     }
 
-    function renderInventoryView(m) {
-      const tbody = document.getElementById('inventoryTableBody');
-      if (!tbody) return;
-      const baseBar = m.ownRate > 0 ? m.ownRate : (m.recommendedBar || 850000);
-
-      tbody.innerHTML = roomInventory.map((room, idx) => {
-        const roomBar = Math.round((baseBar * room.mult) / 5000) * 5000;
-        const roomOnly = Math.max(250000, roomBar - 100000);
-        const earlyBird = Math.round((roomBar * 0.90) / 5000) * 5000;
-        const corpRate = Math.round((roomBar * 0.88) / 5000) * 5000;
-
-        return `
-          <tr class="hover:bg-slate-50">
-            <td class="py-3 px-4 font-bold text-slate-800">${room.name} <span class="text-[10px] text-slate-400">(${room.code})</span></td>
-            <td class="py-3 px-3 text-center">
-              <input type="number" min="0" max="200" value="${room.allotment}" onchange="updateRoomAllotment(${idx}, this.value)" class="mono w-16 text-center border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800" />
-            </td>
-            <td class="py-3 px-3 text-center">
-              <button type="button" onclick="toggleRoomOpen(${idx})" class="px-2.5 py-1 rounded-full text-[10px] font-bold ${room.open ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                ${room.open ? 'OPEN' : 'STOP SELL'}
-              </button>
-            </td>
-            <td class="py-3 px-3 text-right mono font-bold text-amber-900">${formatNum(roomBar)}</td>
-            <td class="py-3 px-3 text-right mono text-slate-700">${formatNum(roomOnly)}</td>
-            <td class="py-3 px-3 text-right mono text-phb-blue font-semibold">${formatNum(earlyBird)}</td>
-            <td class="py-3 px-3 text-right mono text-emerald-700 font-semibold">${formatNum(corpRate)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function updateRoomAllotment(idx, val) {
-      roomInventory[idx].allotment = Math.max(0, parseInt(val, 10) || 0);
-    }
-
-    function toggleRoomOpen(idx) {
-      roomInventory[idx].open = !roomInventory[idx].open;
-      renderInventoryView(computeMetrics(currentHotels));
-    }
-
-    function saveInventoryState() {
-      localStorage.setItem('bpn_room_inventory', JSON.stringify(roomInventory));
-      renderInventoryView(computeMetrics(currentHotels));
-    }
-
-    function renderYieldSimulator(m = computeMetrics(currentHotels)) {
-      const occ = parseInt(document.getElementById('occupancySlider')?.value || '72', 10);
-      const occText = document.getElementById('occupancyValueText');
-      if (occText) occText.textContent = `${occ}%`;
-
-      const baseBar = m.recommendedBar || m.ownRate || 850000;
-      let lift = 0;
-      let ruleDesc = 'Standard Demand (50% - 69%): Parity BAR (0 Lift)';
-
-      if (occ >= 85) {
-        lift = 100000;
-        ruleDesc = 'Peak Compression (>= 85%): +IDR 100,000 BAR Lift';
-      } else if (occ >= 70) {
-        lift = 50000;
-        ruleDesc = 'High Demand (70% - 84%): +IDR 50,000 BAR Lift';
-      } else if (occ < 50) {
-        lift = -50000;
-        ruleDesc = 'Low Occupancy (< 50%): -IDR 50,000 Tactical Promo';
-      }
-
-      const ruleEl = document.getElementById('yieldRuleActiveText');
-      const adjEl = document.getElementById('yieldAdjustedBarText');
-      if (ruleEl) ruleEl.textContent = ruleDesc;
-      if (adjEl) adjEl.textContent = formatIDR(Math.max(300000, baseBar + lift));
-
-      renderDirectBookingsList();
-    }
-
-    function addDirectBooking() {
-      const guest = (document.getElementById('directGuestInput')?.value || '').trim();
-      const nights = Math.max(1, parseInt(document.getElementById('directNightsInput')?.value || '1', 10));
-      if (!guest) return;
-
-      const m = computeMetrics(currentHotels);
-      const rate = m.ownRate || m.recommendedBar || 850000;
-      directBookings.unshift({
-        id: Date.now(),
-        checkin: getActiveCheckin(),
-        guest,
-        nights,
-        total: rate * nights
-      });
-      directBookings = directBookings.slice(0, 30);
-      localStorage.setItem('bpn_direct_bookings', JSON.stringify(directBookings));
-      document.getElementById('directGuestInput').value = '';
-      renderDirectBookingsList();
-    }
-
-    function renderDirectBookingsList() {
-      const list = document.getElementById('directBookingsList');
-      if (!list) return;
-      if (directBookings.length === 0) {
-        list.innerHTML = `<div class="text-[11px] text-slate-400 text-center py-2">No direct reservations recorded yet.</div>`;
-        return;
-      }
-      list.innerHTML = directBookings.map((b) => `
-        <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px]">
-          <div>
-            <strong class="text-slate-800">${b.guest}</strong>
-            <span class="text-slate-500 ml-1">(${b.checkin} • ${b.nights}N)</span>
-          </div>
-          <span class="mono font-bold text-emerald-700">${formatIDR(b.total)}</span>
-        </div>
-      `).join('');
-    }
-
     function renderTransactionDashboard(m) {
       const txns = [...historyLogs];
       const uniqueDates = new Set(txns.map((x) => x.checkin).filter(Boolean));
@@ -1119,7 +856,7 @@
       const body = document.getElementById('dashboardReportBody');
       if (body) {
         if (txns.length === 0) {
-          body.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">No transaction records yet. Click <strong>Check OTA Now</strong> to record a rate shopping transaction.</td></tr>`;
+          body.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">No transaction records yet. Click <strong>Check OTA Now</strong> to record an OTA rate shopping scan.</td></tr>`;
         } else {
           body.innerHTML = txns.map((row) => {
             const pRate = Number(row.ownLowest) || 0;
@@ -1243,10 +980,8 @@
       const m = computeMetrics(currentHotels);
       renderSummaryDashboard(m);
       renderDailyTable(m);
-      renderInventoryView(m);
-      renderYieldSimulator(m);
-      renderTransactionDashboard(m);
       renderGrid7View(checkin);
+      renderTransactionDashboard(m);
       renderHistoryView();
     }
 
@@ -1281,12 +1016,9 @@
           ? '<span class="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-phb-amber text-slate-900">PLATINUM</span>'
           : `<span class="px-1.5 py-0.5 text-[10px] font-bold rounded ${h.group === 'CORE' ? 'bg-sky-100 text-phb-blue' : 'bg-slate-100 text-slate-600'}">${h.group === 'CORE' ? 'CORE' : 'EXT'}</span>`;
 
-        let statusBadge = '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>';
-        if (h.is_manual_own) {
-          statusBadge = '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-900 border border-amber-300">OWN BAR</span>';
-        } else if (h.is_estimated) {
-          statusBadge = '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-sky-100 text-phb-blue border border-sky-200">ESTIMATED</span>';
-        }
+        const statusBadge = h.is_estimated
+          ? '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-sky-100 text-phb-blue border border-sky-200">ESTIMATED</span>'
+          : '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>';
 
         const tr = document.createElement('tr');
         tr.className = h.isOwn ? 'bg-amber-50/70 hover:bg-amber-50 transition' : 'bg-white hover:bg-slate-50 transition';
@@ -1331,9 +1063,6 @@
         const tr = document.createElement('tr');
         tr.className = base.isOwn ? 'bg-amber-50/60' : 'bg-white';
         const cells = dates.map((d) => {
-          if (base.isOwn && Number(manualPlatinumRates[d]) > 0) {
-            return `<td class="py-2.5 px-2.5 text-center mono font-bold text-amber-900 border-r border-slate-200">${formatNum(manualPlatinumRates[d])}</td>`;
-          }
           const snap = (dateSnapshots[d] || []).find((x) => x.id === base.id);
           const rate = Number(snap?.lowest_rate) > 0 && Number(snap.lowest_rate) <= 3500000
             ? Number(snap.lowest_rate)
@@ -1364,7 +1093,7 @@
       }
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Scan 7 Days (7 Quotas)';
+        btn.textContent = 'Scan 7 Days';
       }
       renderGrid7View(start);
     }
@@ -1403,13 +1132,13 @@
       let csv = 'CheckIn,Group,Hotel,Status,SourceMode,Traveloka,Tiket,Agoda,Booking,LowestRate,SuggestedBAR\n';
       m.scoped.forEach((h) => {
         const o = h.ota_breakdown || {};
-        const mode = h.is_manual_own ? 'OWN_BAR' : (h.is_estimated ? 'ESTIMATED' : 'LIVE_OTA');
+        const mode = h.is_estimated ? 'ESTIMATED' : 'LIVE_OTA';
         csv += `${checkin},${h.group || 'CORE'},"${h.name}",AVAILABLE,${mode},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `PHB_RateSheet_${checkin}.csv`;
+      link.download = `PHB_RateShop_${checkin}.csv`;
       link.click();
     }
 
