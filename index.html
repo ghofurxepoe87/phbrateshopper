@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -66,7 +66,6 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
     }
-    /* Cegah auto-zoom pada input/select di iOS Safari */
     @media (max-width: 639px) {
       input[type="date"], select {
         font-size: 14px !important;
@@ -83,46 +82,24 @@
   <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md safe-header pb-2.5">
     <div class="max-w-[1540px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
       <div class="flex items-center justify-between md:justify-start gap-2.5">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <!-- Brand Logo Box (logo.png) -->
-          <div class="bg-white rounded-xl px-2.5 py-1.5 flex items-center gap-2 shadow-sm shrink-0">
-            <img
-              src="./logo.png"
-              alt="Platinum Hotel & Convention Hall Balikpapan"
-              class="h-8 sm:h-9 w-auto max-w-[125px] sm:max-w-[140px] object-contain"
-              onerror="this.style.display='none'; document.getElementById('logoFallback').classList.remove('hidden');"
-            />
-            <div id="logoFallback" class="hidden flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
-                ✦
-              </div>
-              <div class="leading-none">
-                <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
-                <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
-                <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="min-w-0">
-            <h1 class="text-sm sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper</h1>
-            <span id="modeBadge" class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5">
-              <i data-lucide="database" class="w-3 h-3 shrink-0"></i>
-              <span id="modeBadgeText">Cache Ready</span>
-            </span>
-          </div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper</h1>
+          <span id="modeBadge" class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5">
+            <i data-lucide="database" class="w-3 h-3 shrink-0"></i>
+            <span id="modeBadgeText">Cache Ready</span>
+          </span>
         </div>
       </div>
 
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
         <button type="button" onclick="openConfigModal()" class="hidden flex items-center justify-center gap-1.5 bg-phb-amber hover:bg-amber-400 text-slate-900 text-xs font-bold px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition">
           <i data-lucide="plug" class="w-3.5 h-3.5"></i>
-          <span>API & Panduan</span>
+          <span>API & Guide</span>
         </button>
 
         <button type="button" onclick="fetchLiveRates()" class="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 active:scale-[0.99] text-phb-blue text-xs font-bold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
           <i data-lucide="refresh-cw" id="spinIcon" class="w-3.5 h-3.5 shrink-0"></i>
-          <span>Cek OTA Sekarang</span>
+          <span>Check OTA Now</span>
         </button>
 
         <button type="button" onclick="exportCSV()" class="flex items-center justify-center gap-1.5 bg-[#1B85B8] hover:bg-[#1673A0] active:scale-[0.99] text-white border border-white/25 text-xs font-semibold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
@@ -153,10 +130,10 @@
       <!-- View Switcher -->
       <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-3 sm:flex sm:items-center gap-1 text-xs">
         <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
-          Daily Rate
+          Daily Rate & Parity
         </button>
         <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
-          7-Day Grid
+          7-Day Rate Grid
         </button>
         <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
           History Log
@@ -168,7 +145,7 @@
         <div class="flex items-center gap-1 flex-1 min-w-[140px] sm:flex-initial">
           <span class="text-slate-500 font-medium shrink-0">Set:</span>
           <select id="groupFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
-            <option value="ALL">Semua Hotel</option>
+            <option value="ALL">All Hotels</option>
             <option value="CORE">Core Set</option>
             <option value="EXTENDED">Extended Set</option>
           </select>
@@ -177,7 +154,7 @@
         <div class="flex items-center gap-1 flex-1 min-w-[115px] sm:flex-initial">
           <span class="text-slate-500 font-medium shrink-0">Status:</span>
           <select id="statusFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
-            <option value="ALL">Semua</option>
+            <option value="ALL">All</option>
             <option value="AVAILABLE">Open</option>
             <option value="SOLD_OUT">Sold Out</option>
           </select>
@@ -193,8 +170,8 @@
         </div>
 
         <div class="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1.5 sm:py-1">
-          <span class="text-amber-800 font-semibold">Saran BAR:</span>
-          <span id="recommendedRateText" class="mono font-bold text-amber-900">Rp 0</span>
+          <span class="text-amber-800 font-semibold">Suggested BAR:</span>
+          <span id="recommendedRateText" class="mono font-bold text-amber-900">IDR 0</span>
         </div>
       </div>
     </section>
@@ -202,46 +179,36 @@
     <!-- Alert Banner -->
     <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
-    <!-- Header Summary Card -->
+    <!-- Header Summary Card (No Logo Box) -->
     <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5">
-      <div class="flex items-start sm:items-center gap-3">
-        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center p-1.5 overflow-hidden shrink-0">
-          <img
-            src="./logo.png"
-            alt="PHB"
-            class="w-full h-full object-contain"
-            onerror="this.style.display='none';"
-          />
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">PLATINUM HOTEL & CONVENTION HALL BALIKPAPAN — COMPETITOR RATE & OTA PARITY</h2>
+          <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded border border-slate-200">BALIKPAPAN COMPSET</span>
+          <span id="soldOutLiftBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded border border-amber-300"></span>
         </div>
-        <div class="min-w-0">
-          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">PHB COMPETITOR RATE & OTA PARITY SHEET</h2>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded border border-slate-200">BALIKPAPAN COMPSET</span>
-            <span id="soldOutLiftBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded border border-amber-300"></span>
-          </div>
-          <p class="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
-            Platinum: <strong id="summaryOwnStatus" class="text-slate-700">-</strong>
-            <span class="mx-1 text-slate-300">•</span>
-            Open: <strong id="summaryOpenCount" class="text-emerald-600">0</strong>/<strong id="summaryTotalComp" class="text-slate-700">19</strong>
-            <span class="mx-1 text-slate-300">•</span>
-            Avg Pasar: <strong id="summaryMarketAvg" class="mono text-phb-blue">Rp 0</strong>
-            <span class="mx-1 text-slate-300">•</span>
-            Termurah: <strong id="summaryLowestComp" class="mono text-rose-600">-</strong>
-          </p>
-        </div>
+        <p class="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
+          Platinum Status: <strong id="summaryOwnStatus" class="text-slate-700">-</strong>
+          <span class="mx-1 text-slate-300">•</span>
+          Competitors Open: <strong id="summaryOpenCount" class="text-emerald-600">0</strong>/<strong id="summaryTotalComp" class="text-slate-700">19</strong>
+          <span class="mx-1 text-slate-300">•</span>
+          Market Avg: <strong id="summaryMarketAvg" class="mono text-phb-blue">IDR 0</strong>
+          <span class="mx-1 text-slate-300">•</span>
+          Lowest: <strong id="summaryLowestComp" class="mono text-rose-600">-</strong>
+        </p>
       </div>
 
       <div class="flex items-center justify-between lg:justify-end gap-3 text-xs border-t lg:border-t-0 pt-2.5 lg:pt-0 border-slate-100">
         <div>
           <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
           <select id="autoPollSelect" onchange="configureAutoPoll()" class="min-h-[34px] border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
-            <option value="0" selected>Manual (0 Kuota)</option>
-            <option value="900000">Tiap 15 Menit</option>
-            <option value="1800000">Tiap 30 Menit</option>
+            <option value="0" selected>Manual (0 Quota)</option>
+            <option value="900000">Every 15 Mins</option>
+            <option value="1800000">Every 30 Mins</option>
           </select>
         </div>
         <div class="text-right border-l border-slate-200 pl-3">
-          <span class="block text-[10px] font-semibold uppercase text-slate-400">Update Terakhir</span>
+          <span class="block text-[10px] font-semibold uppercase text-slate-400">Last Update</span>
           <span id="lastUpdateText" class="mono text-xs font-bold text-phb-blue">--:--:-- WITA</span>
         </div>
       </div>
@@ -264,7 +231,7 @@
               </th>
             </tr>
             <tr class="bg-phb-blue text-white text-[11px] font-bold">
-              <th class="py-3 px-4 border-r border-white/15">Properti Hotel Competitor Set (A)</th>
+              <th class="py-3 px-4 border-r border-white/15">Competitor Set Property (A)</th>
               <th class="py-3 px-2.5 text-center border-r border-white/15">Status (B)</th>
               <th class="py-3 px-3 text-right border-r border-white/15">Traveloka (C)</th>
               <th class="py-3 px-3 text-right border-r border-white/15">Tiket.com (D)</th>
@@ -285,10 +252,10 @@
       <div class="px-4 py-3 bg-sky-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>
           <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
-          <span class="text-slate-500 ml-2">Klik tanggal untuk memuat data cache atau klik <strong>Scan 7 Hari</strong>.</span>
+          <span class="text-slate-500 ml-2">Click a date to load cached data or click <strong>Scan 7 Days</strong>.</span>
         </div>
         <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
-          Scan 7 Hari (Pakai 7 Kuota)
+          Scan 7 Days (7 Quotas)
         </button>
       </div>
       <div class="table-scroll">
@@ -304,14 +271,14 @@
       <div class="px-4 py-3 bg-emerald-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>
           <strong class="text-emerald-900 uppercase">Historical Rate Log & Trend Snapshot</strong>
-          <span id="supabaseSyncStatus" class="text-slate-500 ml-2">Penyimpanan: Supabase Cloud + Local</span>
+          <span id="supabaseSyncStatus" class="text-slate-500 ml-2">Storage: Supabase Cloud + Local</span>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" onclick="syncHistoryFromSupabase()" class="min-h-[36px] bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
-            Muat Supabase (0 Kuota)
+            Load Supabase (0 Quota)
           </button>
           <button type="button" onclick="clearLocalHistory()" class="min-h-[36px] bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
-            Reset Log Lokal
+            Clear Local Log
           </button>
         </div>
       </div>
@@ -319,14 +286,14 @@
         <table class="w-full min-w-[780px] text-left border-collapse">
           <thead>
             <tr class="bg-phb-blue text-white text-[11px] font-bold">
-              <th class="py-3 px-4">Waktu Scan (WITA)</th>
+              <th class="py-3 px-4">Scan Time (WITA)</th>
               <th class="py-3 px-3">Check-In</th>
-              <th class="py-3 px-3">Status Platinum</th>
+              <th class="py-3 px-3">Platinum Status</th>
               <th class="py-3 px-3 text-right">Lowest Platinum</th>
-              <th class="py-3 px-3 text-right">Avg Kompetitor</th>
-              <th class="py-3 px-3 text-right">Saran BAR</th>
+              <th class="py-3 px-3 text-right">Competitor Avg</th>
+              <th class="py-3 px-3 text-right">Suggested BAR</th>
               <th class="py-3 px-3 text-center">Open / Total</th>
-              <th class="py-3 px-4">Alert Ringkas</th>
+              <th class="py-3 px-4">Alert Summary</th>
             </tr>
           </thead>
           <tbody id="historyTableBody" class="divide-y divide-slate-200 text-xs"></tbody>
@@ -336,11 +303,11 @@
 
   </main>
 
-  <!-- Config Modal (Dapat dibuka lewat console: openConfigModal()) -->
+  <!-- Config Modal (Accessible via console: openConfigModal()) -->
   <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl text-xs text-slate-700">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <h3 class="text-sm font-bold text-slate-900">Konfigurasi Endpoint</h3>
+        <h3 class="text-sm font-bold text-slate-900">Endpoint Configuration</h3>
         <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div>
@@ -348,8 +315,8 @@
         <input type="url" id="apiUrlInput" placeholder="/api/live-rates" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900" />
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-slate-600">Batal</button>
-        <button type="button" onclick="saveConfig()" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-4 py-2 rounded-lg">Simpan</button>
+        <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-slate-600">Cancel</button>
+        <button type="button" onclick="saveConfig()" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-4 py-2 rounded-lg">Save</button>
       </div>
     </div>
   </div>
@@ -370,18 +337,19 @@
     function formatNum(amount) {
       const n = Number(amount);
       if (!Number.isFinite(n) || n <= 0) return '-';
-      return Math.round(n).toLocaleString('id-ID');
+      return Math.round(n).toLocaleString('en-US');
     }
 
     function formatIDR(amount) {
       const n = Number(amount);
       if (!Number.isFinite(n) || n <= 0) return '-';
-      return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+      return 'IDR ' + Math.round(n).toLocaleString('en-US');
     }
 
     function formatTimeWITA(isoString) {
       const d = isoString ? new Date(isoString) : new Date();
-      return d.toLocaleTimeString('id-ID', {
+      return d.toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Makassar',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'
@@ -445,7 +413,7 @@
         } else if (!dateSnapshots[checkin]) {
           currentHotels = [];
           badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-slate-600 text-white shadow-sm mt-0.5';
-          badgeText.textContent = 'Ready (0 Kuota)';
+          badgeText.textContent = 'Ready (0 Quota)';
           renderActiveView();
         }
       } catch {
@@ -482,9 +450,9 @@
         try {
           data = JSON.parse(text);
         } catch {
-          throw new Error(text.slice(0, 140) || 'Respons server bukan JSON valid');
+          throw new Error(text.slice(0, 140) || 'Invalid JSON response from server');
         }
-        if (!res.ok) throw new Error(data.error || 'Gagal menarik data dari backend');
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch live rates');
 
         const hotels = Array.isArray(data.hotels) ? data.hotels : [];
         dateSnapshots[checkin] = hotels;
@@ -506,7 +474,7 @@
         badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-rose-500 text-white shadow-sm mt-0.5';
         badgeText.textContent = 'API Error';
         alertBanner.className = 'rounded-2xl p-3.5 flex items-start gap-3 text-xs border bg-rose-50 border-rose-200 text-rose-800';
-        alertBanner.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i><div><strong>Gagal Sinkronisasi:</strong> ${err.message}</div>`;
+        alertBanner.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i><div><strong>Sync Failed:</strong> ${err.message}</div>`;
         lucide.createIcons();
         return null;
       } finally {
@@ -540,7 +508,7 @@
     function recordLocalSnapshotHistory(checkin, hotels, fetchedAt) {
       const m = computeMetrics(hotels);
       const alerts = [];
-      if (m.soldOutCompCount >= 3) alerts.push(`${m.soldOutCompCount} kompetitor Sold Out`);
+      if (m.soldOutCompCount >= 3) alerts.push(`${m.soldOutCompCount} Competitors Sold Out`);
       if (!m.ownHotel || m.ownHotel.status !== 'AVAILABLE' || !Number(m.ownHotel.lowest_rate)) alerts.push('Platinum Sold Out');
       if (alerts.length === 0) alerts.push('Normal Parity');
 
@@ -593,7 +561,7 @@
         ownEl.textContent = '-';
         ownEl.className = 'text-slate-700';
       } else if (ownSoldOut) {
-        ownEl.textContent = 'SOLD OUT / PENUH';
+        ownEl.textContent = 'SOLD OUT';
         ownEl.className = 'text-rose-600 font-bold';
       } else {
         ownEl.textContent = `${formatIDR(m.ownHotel.lowest_rate)} (OPEN)`;
@@ -605,9 +573,9 @@
       document.getElementById('summaryMarketAvg').textContent = m.marketAvg > 0 ? formatIDR(m.marketAvg) : 'N/A';
       document.getElementById('summaryLowestComp').textContent = m.lowestComp
         ? `${formatIDR(m.lowestComp.lowest_rate)} (${m.lowestComp.name.split(' ')[0]})`
-        : (currentHotels.length ? 'Semua Penuh' : '-');
+        : (currentHotels.length ? 'All Sold Out' : '-');
 
-      document.getElementById('recommendedRateText').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'BAR Standard';
+      document.getElementById('recommendedRateText').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'Standard BAR';
 
       const liftBadge = document.getElementById('soldOutLiftBadge');
       if (m.soldOutLift > 0) {
@@ -627,7 +595,7 @@
       tbody.innerHTML = '';
 
       if (currentHotels.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500">Belum ada snapshot tersimpan untuk tanggal ini (<strong>0 kuota terpakai</strong>). Klik <strong>Cek OTA Sekarang</strong> jika ingin menarik tarif live.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500">No saved snapshot for this date (<strong>0 quota used</strong>). Click <strong>Check OTA Now</strong> to fetch live rates.</td></tr>`;
         return;
       }
 
@@ -700,7 +668,7 @@
 
       head.innerHTML = `
         <tr>
-          <th class="py-3 px-4 border-r border-white/15">Properti Hotel Competitor Set</th>
+          <th class="py-3 px-4 border-r border-white/15">Competitor Set Property</th>
           ${dates.map(d => `<th class="py-3 px-2.5 text-center border-r border-white/15 cursor-pointer hover:bg-phb-darkblue" onclick="selectDateFromGrid('${d}')">${d.slice(5)}</th>`).join('')}
         </tr>
       `;
@@ -733,20 +701,20 @@
     async function scanNext7Days() {
       const btn = document.getElementById('scan7Btn');
       btn.disabled = true;
-      btn.textContent = 'Scanning 7 Hari...';
+      btn.textContent = 'Scanning 7 Days...';
       const start = document.getElementById('checkinInput').value;
       for (let i = 0; i < 7; i++) {
         await fetchLiveRates(addDays(start, i), true);
       }
       btn.disabled = false;
-      btn.textContent = 'Scan 7 Hari (Pakai 7 Kuota)';
+      btn.textContent = 'Scan 7 Days (7 Quotas)';
       renderGrid7View(start);
     }
 
     function renderHistoryView() {
       const tbody = document.getElementById('historyTableBody');
       if (historyLogs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">Belum ada riwayat scan tersimpan. Klik <strong>Muat Supabase (0 Kuota)</strong> untuk menarik log dari cloud.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">No scan history saved yet. Click <strong>Load Supabase (0 Quota)</strong> to fetch cloud logs.</td></tr>`;
         return;
       }
 
@@ -789,7 +757,7 @@
     function exportCSV() {
       const checkin = document.getElementById('checkinInput').value;
       const m = computeMetrics(currentHotels);
-      let csv = 'CheckIn,Group,Hotel,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,RecommendedBAR\n';
+      let csv = 'CheckIn,Group,Hotel,Status,Traveloka,Tiket,Agoda,Booking,LowestRate,SuggestedBAR\n';
       m.scoped.forEach(h => {
         const o = h.ota_breakdown || {};
         csv += `${checkin},${h.group || 'CORE'},"${h.name}",${h.status},${o.traveloka || 0},${o.tiket || 0},${o.agoda || 0},${o.booking || 0},${h.lowest_rate || 0},${m.recommendedBar || 0}\n`;
