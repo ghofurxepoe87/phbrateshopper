@@ -123,52 +123,142 @@ module.exports = async function handler(req, res) {
       );
     };
 
-    const hasAnyOfferPrice = (obj) => {
-      if (!obj || typeof obj !== 'object') return false;
-      if (extractRealOtaPrice(obj) > 0) return true;
-      const offers = [
-        ...(Array.isArray(obj.featured_prices) ? obj.featured_prices : []),
-        ...(Array.isArray(obj.prices) ? obj.prices : [])
-      ];
-      return offers.some((o) => extractRealOtaPrice(o) > 0);
-    };
+    const buildSerpUrl = (qText) =>
+      `https://serpapi.com/search.json?engine=google_hotels` +
+      `&q=${encodeURIComponent(qText)}` +
+      `&check_in_date=${checkin}&check_out_date=${checkout}` +
+      `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
 
-    async function fetchPlatinumLive() {
-      const queries = [
-        'Platinum Hotel & Convention Hall Balikpapan',
-        'Platinum Hotel Balikpapan'
-      ];
-      for (const qText of queries) {
-        try {
-          const u =
-            `https://serpapi.com/search.json?engine=google_hotels` +
-            `&q=${encodeURIComponent(qText)}` +
-            `&check_in_date=${checkin}&check_out_date=${checkout}` +
-            `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
-          const r = await fetchWithTimeout(u, {}, 12000);
-          const d = await r.json();
-          if (!d || d.error) continue;
+    const [resCity, resSudirman, resPlatinum] = await Promise.allSettled([
+      fetchWithTimeout(buildSerpUrl('hotels in Balikpapan'), {}, 14000).then((r) => r.json()),
+      fetchWithTimeout(buildSerpUrl('hotels in Sudirman Balikpapan'), {}, 14000).then((r) => r.json()),
+      fetchWithTimeout(buildSerpUrl('Platinum Hotel & Convention Hall Balikpapan'), {}, 14000).then((r) => r.json())
+    ]);
 
-          if (hasAnyOfferPrice(d)) return d;
+    const cityJson = resCity.status === 'fulfilled' ? resCity.value : null;
+    const sudirmanJson = resSudirman.status === 'fulfilled' ? resSudirman.value : null;
+    const platinumJson = resPlatinum.status === 'fulfilled' ? resPlatinum.value : null;
 
-          if (Array.isArray(d.properties) && d.properties.length > 0) {
-            const matched = d.properties.find((p) =>
-              String((p && p.name) || '').toLowerCase().includes('platinum') && hasAnyOfferPrice(p)
-            );
-            if (matched) return matched;
-          }
-        } catch {
-          // lanjut ke kueri cadangan
-        }
-      }
-      return null;
+    if (cityJson && cityJson.error && !sudirmanJson && !platinumJson) {
+      return res.status(502).json({ error: String(cityJson.error) });
     }
 
-    async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
+    const combinedProps = [
+      ...(Array.isArray(cityJson && cityJson.properties) ? cityJson.properties : []),
+      ...(Array.isArray(sudirmanJson && sudirmanJson.properties) ? sudirmanJson.properties : [])
+    ];
+
+    if (platinumJson && !platinumJson.error) {
+      if (Array.isArray(platinumJson.properties)) {
+        combinedProps.unshift(...platinumJson.properties);
+      } else if (platinumJson.rate_per_night || Array.isArray(platinumJson.featured_prices) || Array.isArray(platinumJson.prices)) {
+        combinedProps.unshift({
+          ...platinumJson,
+          name: platinumJson.name || 'Platinum Hotel & Convention Hall Balikpapan'
+        });
+      }
+    }
+
+    const hotels = tracked.map((item) => {
+      const matchingProps = combinedProps.filter((p) => {
+        const raw = String((p && p.name) || '').trim();
+        if (!raw) return false;
+        const low = ` ${raw.toLowerCase()} `;
+        return item.matchKeys.some((k) => low.includes(k.toLowerCase()));
+      });
+
+      const ota = { traveloka: 0, tiket: 0, agoda: 0, booking: 0 };
+      const otaMap = new Map();
+      let bestPrice = 0;
+      let bestSource = '';
+      let isEstimated = false;
+
+      for (const found of matchingProps) {
+        const propPrice = extractRealOtaPrice(found);
+        const propSrc = String((found && found.rate_per_night && found.rate_per_night.source) || (found && found.source) || '').trim();
+        if (propPrice > 0 && (!bestPrice || propPrice < bestPrice)) {
+          bestPrice = propPrice;
+          if (propSrc) bestSource = propSrc;
+        }
+
+        const offers = [
+          ...(Array.isArray(found && found.featured_prices) ? found.featured_prices : []),
+          ...(Array.isArray(found && found.prices) ? found.prices : [])
+        ];
+
+        for (const offer of offers) {
+          if (!offer) continue;
+          const src = String(offer.source || '').trim();
+          const lowSrc = src.toLowerCase();
+          const val = extractRealOtaPrice(offer);
+          if (!val) continue;
+
+          if (!bestPrice || val < bestPrice) {
+            bestPrice = val;
+            if (src) bestSource = src;
+          }
+          if (src) {
+            const prev = otaMap.get(src);
+            if (!prev || val < prev) otaMap.set(src, val);
+          }
+          if (lowSrc.includes('traveloka')) {
+            if (!ota.traveloka || val < ota.traveloka) ota.traveloka = val;
+          } else if (lowSrc.includes('tiket')) {
+            if (!ota.tiket || val < ota.tiket) ota.tiket = val;
+          } else if (lowSrc.includes('agoda')) {
+            if (!ota.agoda || val < ota.agoda) ota.agoda = val;
+          } else if (lowSrc.includes('booking')) {
+            if (!ota.booking || val < ota.booking) ota.booking = val;
+          }
+        }
+      }
+
+      const allOtaRates = Array.from(otaMap.entries())
+        .map(([source, rate]) => ({ source, rate }))
+        .sort((a, b) => a.rate - b.rate);
+
+      if (!bestPrice && allOtaRates.length > 0) {
+        bestPrice = allOtaRates[0].rate;
+        bestSource = allOtaRates[0].source;
+      }
+
+      if (!bestPrice) {
+        bestPrice = item.fallbackRate;
+        bestSource = 'Benchmark Rate';
+        isEstimated = true;
+      }
+
+      if (bestPrice > 0 && !ota.traveloka && !ota.tiket && !ota.agoda && !ota.booking) {
+        const lowBestSrc = bestSource.toLowerCase();
+        if (lowBestSrc.includes('traveloka')) {
+          ota.traveloka = bestPrice;
+        } else if (lowBestSrc.includes('tiket')) {
+          ota.tiket = bestPrice;
+        } else if (lowBestSrc.includes('agoda')) {
+          ota.agoda = bestPrice;
+        } else if (lowBestSrc.includes('booking')) {
+          ota.booking = bestPrice;
+        } else {
+          ota.traveloka = bestPrice;
+        }
+      }
+
+      return {
+        ...item,
+        status: 'AVAILABLE',
+        is_estimated: isEstimated,
+        lowest_rate: bestPrice,
+        lowest_source: bestSource || 'OTA',
+        ota_breakdown: ota,
+        all_ota_rates: allOtaRates
+      };
+    });
+
+    async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, listHotels) {
       if (!sbUrl || !sbUrl.startsWith('http') || !sbKey) return false;
 
-      const ownHotel = hotels.find((h) => h.isOwn);
-      const competitors = hotels.filter((h) => !h.isOwn);
+      const ownHotel = listHotels.find((h) => h.isOwn);
+      const competitors = listHotels.filter((h) => !h.isOwn);
       const openCompetitors = competitors.filter((h) => Number(h.lowest_rate) > 0);
       const marketAvg = openCompetitors.length > 0
         ? Math.round(openCompetitors.reduce((s, x) => s + Number(x.lowest_rate), 0) / openCompetitors.length)
@@ -222,127 +312,13 @@ module.exports = async function handler(req, res) {
             fetched_at: fetchedAt,
             market_avg: marketAvg,
             recommended_bar: recommendedBar,
-            hotels
+            hotels: listHotels
           })
         }, 8000)
       ]);
 
       return resList.every((r) => r.status === 'fulfilled' && r.value && r.value.ok);
     }
-
-    const searchUrl =
-      `https://serpapi.com/search.json?engine=google_hotels` +
-      `&q=${encodeURIComponent('hotels in Balikpapan')}` +
-      `&check_in_date=${checkin}&check_out_date=${checkout}` +
-      `&adults=2&currency=IDR&gl=id&hl=id&api_key=${encodeURIComponent(apiKey)}`;
-
-    const response = await fetchWithTimeout(searchUrl, {}, 14000);
-    const json = await response.json();
-
-    if (json.error) {
-      return res.status(502).json({ error: String(json.error) });
-    }
-
-    const props = Array.isArray(json.properties) ? json.properties : [];
-    const usedNames = new Set();
-
-    const matchedList = tracked.map((item) => {
-      const found = props.find((p) => {
-        const raw = String((p && p.name) || '').trim();
-        if (!raw || usedNames.has(raw)) return false;
-        const low = ` ${raw.toLowerCase()} `;
-        return item.matchKeys.some((k) => low.includes(k.toLowerCase()));
-      });
-      if (found && found.name) usedNames.add(String(found.name).trim());
-      return { item, found };
-    });
-
-    const platIdx = matchedList.findIndex((x) => x.item.isOwn);
-    if (platIdx !== -1 && !hasAnyOfferPrice(matchedList[platIdx].found)) {
-      const platDirect = await fetchPlatinumLive();
-      if (platDirect) {
-        matchedList[platIdx].found = platDirect;
-      }
-    }
-
-    const hotels = matchedList.map(({ item, found }) => {
-      const offers = [
-        ...(Array.isArray(found && found.featured_prices) ? found.featured_prices : []),
-        ...(Array.isArray(found && found.prices) ? found.prices : [])
-      ];
-
-      const ota = { traveloka: 0, tiket: 0, agoda: 0, booking: 0 };
-      const otaMap = new Map();
-      let bestPrice = extractRealOtaPrice(found);
-      let bestSource = String((found && found.rate_per_night && found.rate_per_night.source) || (found && found.source) || '').trim();
-      let isEstimated = false;
-
-      for (const offer of offers) {
-        if (!offer) continue;
-        const src = String(offer.source || '').trim();
-        const lowSrc = src.toLowerCase();
-        const val = extractRealOtaPrice(offer);
-        if (!val) continue;
-
-        if (!bestPrice || val < bestPrice) {
-          bestPrice = val;
-          if (src) bestSource = src;
-        }
-        if (src) {
-          const prev = otaMap.get(src);
-          if (!prev || val < prev) otaMap.set(src, val);
-        }
-        if (lowSrc.includes('traveloka')) {
-          if (!ota.traveloka || val < ota.traveloka) ota.traveloka = val;
-        } else if (lowSrc.includes('tiket')) {
-          if (!ota.tiket || val < ota.tiket) ota.tiket = val;
-        } else if (lowSrc.includes('agoda')) {
-          if (!ota.agoda || val < ota.agoda) ota.agoda = val;
-        } else if (lowSrc.includes('booking')) {
-          if (!ota.booking || val < ota.booking) ota.booking = val;
-        }
-      }
-
-      if (bestPrice > 0 && !ota.traveloka && !ota.tiket && !ota.agoda && !ota.booking) {
-        const lowBestSrc = bestSource.toLowerCase();
-        if (lowBestSrc.includes('traveloka')) {
-          ota.traveloka = bestPrice;
-        } else if (lowBestSrc.includes('tiket')) {
-          ota.tiket = bestPrice;
-        } else if (lowBestSrc.includes('agoda')) {
-          ota.agoda = bestPrice;
-        } else if (lowBestSrc.includes('booking')) {
-          ota.booking = bestPrice;
-        } else {
-          ota.traveloka = bestPrice;
-        }
-      }
-
-      const allOtaRates = Array.from(otaMap.entries())
-        .map(([source, rate]) => ({ source, rate }))
-        .sort((a, b) => a.rate - b.rate);
-
-      if (!bestPrice && allOtaRates.length > 0) {
-        bestPrice = allOtaRates[0].rate;
-        bestSource = allOtaRates[0].source;
-      }
-
-      if (!bestPrice) {
-        bestPrice = item.fallbackRate;
-        bestSource = 'Benchmark Rate';
-        isEstimated = true;
-      }
-
-      return {
-        ...item,
-        status: 'AVAILABLE',
-        is_estimated: isEstimated,
-        lowest_rate: bestPrice,
-        lowest_source: bestSource || 'OTA',
-        ota_breakdown: ota,
-        all_ota_rates: allOtaRates
-      };
-    });
 
     const fetchedAt = new Date().toISOString();
     const supabaseSaved = await saveToSupabase(checkin, checkout, fetchedAt, hotels);
@@ -353,7 +329,7 @@ module.exports = async function handler(req, res) {
       checkout,
       fetched_at: fetchedAt,
       supabase_saved: supabaseSaved,
-      total_properties_found: props.length,
+      total_properties_found: combinedProps.length,
       hotels
     });
   } catch (err) {
