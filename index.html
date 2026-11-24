@@ -138,7 +138,7 @@
         </div>
       </div>
 
-      <!-- View Switcher (Includes Transaction Dashboard) -->
+      <!-- View Switcher -->
       <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-2 sm:flex sm:items-center gap-1 text-xs">
         <button type="button" onclick="setViewMode('DASHBOARD')" id="viewDASHBOARD" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
           Transaction Dashboard
@@ -192,7 +192,7 @@
     <!-- Alert Banner -->
     <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
-    <!-- Executive Rate & Parity Summary Bar -->
+    <!-- Executive Rate & Parity Summary Bar + Description Toggle -->
     <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3.5">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 border-b border-slate-100 pb-3">
         <div>
@@ -205,7 +205,13 @@
             Real-time rate positioning, OTA channel parity health, and BAR recommendation derived from active snapshots & transaction logs.
           </p>
         </div>
-        <div class="flex items-center justify-between lg:justify-end gap-3 text-xs">
+
+        <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 text-xs">
+          <button type="button" onclick="toggleDescriptionPanel()" id="descToggleBtn" class="min-h-[34px] inline-flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 text-phb-blue border border-sky-200 font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            <span id="descToggleText">Description</span>
+          </button>
+
           <div>
             <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
             <select id="autoPollSelect" onchange="configureAutoPoll()" class="min-h-[34px] border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
@@ -259,11 +265,42 @@
           <div id="summaryTxnCount" class="text-[11px] text-slate-600 mt-0.5">0 Logged Scans</div>
         </div>
       </div>
+
+      <!-- Expandable Dashboard Description Box -->
+      <div id="dashboardDescriptionBox" class="hidden rounded-xl border border-sky-200 bg-sky-50/60 p-3.5 sm:p-4 text-xs text-slate-700 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-sky-200/80 pb-2">
+          <div class="flex items-center gap-2 font-extrabold text-phb-blue uppercase tracking-wide text-[11px] sm:text-xs">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Dashboard Description & Metric Definitions</span>
+          </div>
+          <button type="button" onclick="toggleDescriptionPanel()" class="text-[11px] font-semibold text-phb-blue hover:underline">Hide</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 leading-relaxed">
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Platinum Rate Index:</strong> Shows Platinum Hotel & Convention Hall Balikpapan's current rate, its percentage index relative to the competitor average (100% = equal to market average), and the exact IDR difference (+ above average / - below average).
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Compset Avg & Spread:</strong> Displays the average rate across tracked Balikpapan competitor hotels and highlights the lowest-priced competitor property for quick price benchmarking.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">OTA Channel Parity:</strong> Measures rate consistency across online channels (Traveloka, Tiket.com, Agoda, Booking.com) and flags disparity alerts when channel gaps reach IDR 35,000 or more.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">BAR Strategy & Logs:</strong> Shows the recommended Best Available Rate (rounded to IDR 5,000) plus the total count of saved scan transactions and active compset properties.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Saved Snapshot vs Check OTA Now:</strong> Loading cached snapshots uses <strong>0 API quota</strong> from Supabase/local storage; clicking <strong>Check OTA Now</strong> performs a live lookup and saves new transaction logs to Supabase.
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-sky-100">
+            <strong class="text-slate-900">Zero Sold-Out Mode (Live vs Estimated):</strong> Properties with live OTA prices on the selected date show <strong>AVAILABLE</strong>, while dates without live feed automatically carry forward the last known rate or benchmark rate as <strong>ESTIMATED</strong> so compset averages stay complete.
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- VIEW 0: TRANSACTION DASHBOARD (CHARTS + FULL TRANSACTION REPORTS) -->
+    <!-- VIEW 0: TRANSACTION DASHBOARD -->
     <section id="panelDASHBOARD" class="hidden space-y-4">
-      <!-- Report Metric Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <span class="block text-[10px] font-bold uppercase text-slate-400">Total Recorded Transactions</span>
@@ -287,7 +324,6 @@
         </div>
       </div>
 
-      <!-- Charts Grid -->
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="flex items-center justify-between mb-3">
@@ -316,7 +352,6 @@
         </div>
       </div>
 
-      <!-- Full Transaction Report Table -->
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div>
@@ -468,6 +503,14 @@
     let pollTimer = null;
     let trendChartInstance = null;
     let otaChartInstance = null;
+
+    function toggleDescriptionPanel() {
+      const box = document.getElementById('dashboardDescriptionBox');
+      const txt = document.getElementById('descToggleText');
+      const willOpen = box.classList.contains('hidden');
+      box.classList.toggle('hidden', !willOpen);
+      txt.textContent = willOpen ? 'Close Description' : 'Description';
+    }
 
     function formatNum(amount) {
       const n = Number(amount);
@@ -794,7 +837,6 @@
       document.getElementById('dashAvgCompset').textContent = formatIDR(avgComp);
       document.getElementById('dashAvgBar').textContent = formatIDR(avgBar);
 
-      // Ledger Table
       const body = document.getElementById('dashboardReportBody');
       if (txns.length === 0) {
         body.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">No transaction records yet. Click <strong>Check OTA Now</strong> to record a rate shopping transaction.</td></tr>`;
