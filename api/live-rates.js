@@ -9,7 +9,67 @@ export default async function handler(req, res) {
 
   const checkin = req.query.checkin || new Date(Date.now() + 86400000).toISOString().split('T')[0];
   const checkout = new Date(new Date(checkin).getTime() + 86400000).toISOString().split('T')[0];
+  const cachedOnly = req.query.cached === '1';
+  const loadLogsOnly = req.query.logs === '1';
 
+  const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
+  const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+
+  // 1. Mode baca riwayat log dari Supabase (0 Kuota SerpApi)
+  if (loadLogsOnly) {
+    if (!sbUrl || !sbKey) {
+      return res.status(200).json({ logs: [] });
+    }
+    try {
+      const r = await fetch(
+        `${sbUrl}/rest/v1/rate_shop_logs?select=payload,fetched_at&order=fetched_at.desc&limit=60`,
+        {
+          headers: {
+            apikey: sbKey,
+            Authorization: `Bearer ${sbKey}`
+          }
+        }
+      );
+      const rows = await r.json();
+      const logs = Array.isArray(rows) ? rows.map((x) => x.payload).filter(Boolean) : [];
+      return res.status(200).json({ logs });
+    } catch {
+      return res.status(200).json({ logs: [] });
+    }
+  }
+
+  // 2. Mode baca snapshot tersimpan dari Supabase (0 Kuota SerpApi)
+  if (cachedOnly) {
+    if (!sbUrl || !sbKey) {
+      return res.status(200).json({ cached: false, hotels: [] });
+    }
+    try {
+      const r = await fetch(
+        `${sbUrl}/rest/v1/rate_shop_snapshots?checkin_date=eq.${encodeURIComponent(checkin)}&select=checkin_date,checkout_date,fetched_at,hotels&limit=1`,
+        {
+          headers: {
+            apikey: sbKey,
+            Authorization: `Bearer ${sbKey}`
+          }
+        }
+      );
+      const rows = await r.json();
+      if (Array.isArray(rows) && rows.length > 0 && Array.isArray(rows[0].hotels)) {
+        return res.status(200).json({
+          cached: true,
+          checkin: rows[0].checkin_date,
+          checkout: rows[0].checkout_date,
+          fetched_at: rows[0].fetched_at,
+          hotels: rows[0].hotels
+        });
+      }
+      return res.status(200).json({ cached: false, hotels: [] });
+    } catch {
+      return res.status(200).json({ cached: false, hotels: [] });
+    }
+  }
+
+  // 3. Mode Live Fetch ke SerpApi (Hanya dijalankan saat tombol "Cek OTA Sekarang" diklik)
   const tracked = [
     { id: 'platinum', group: 'CORE', matchKeys: ['platinum'], name: 'Platinum Hotel & Convention Hall Balikpapan', area: 'Jl. Soekarno Hatta, Balikpapan', isOwn: true },
     { id: 'bluesky', group: 'CORE', matchKeys: ['blue sky'], name: 'Blue Sky Hotel Balikpapan', area: 'Kebun Sayur, Balikpapan', isOwn: false },
@@ -61,8 +121,6 @@ export default async function handler(req, res) {
   };
 
   async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
-    const sbUrl = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
-    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
     if (!sbUrl || !sbUrl.startsWith('http') || !sbKey) return false;
 
     const ownHotel = hotels.find((h) => h.isOwn);
@@ -235,6 +293,7 @@ export default async function handler(req, res) {
     const supabaseSaved = await saveToSupabase(checkin, checkout, fetchedAt, hotels);
 
     return res.status(200).json({
+      cached: false,
       checkin,
       checkout,
       fetched_at: fetchedAt,
