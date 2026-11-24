@@ -227,6 +227,85 @@ export default async function handler(req, res) {
     }
   }
 
+  async function saveToSupabase(checkinDate, checkoutDate, fetchedAt, hotels) {
+    const sbUrl = (process.env.SUPABASE_URL || 'https://hupvhnvztvzqbdhuukpt.supabase.co').replace(/\/+$/, '');
+    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+    if (!sbUrl || !sbKey) return false;
+
+    const ownHotel = hotels.find((h) => h.isOwn);
+    const competitors = hotels.filter((h) => !h.isOwn);
+    const openCompetitors = competitors.filter((h) => h.status === 'AVAILABLE' && Number(h.lowest_rate) > 0);
+    const soldOutCompCount = Math.max(0, competitors.length - openCompetitors.length);
+
+    const marketAvg = openCompetitors.length > 0
+      ? Math.round(openCompetitors.reduce((s, x) => s + Number(x.lowest_rate), 0) / openCompetitors.length)
+      : 0;
+
+    const soldOutLift = soldOutCompCount * 10000;
+    const recommendedBar = marketAvg > 0
+      ? Math.round((marketAvg + soldOutLift) / 5000) * 5000
+      : 0;
+
+    const timeWita = new Date(fetchedAt).toLocaleTimeString('id-ID', {
+      timeZone: 'Asia/Makassar',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }) + ' WITA';
+
+    const alerts = [];
+    if (soldOutCompCount >= 3) alerts.push(`${soldOutCompCount} kompetitor Sold Out`);
+    if (!ownHotel || ownHotel.status !== 'AVAILABLE' || !Number(ownHotel.lowest_rate)) alerts.push('Platinum Sold Out');
+    if (alerts.length === 0) alerts.push('Normal Parity');
+
+    const logPayload = {
+      id: Date.now(),
+      time: timeWita,
+      checkin: checkinDate,
+      ownStatus: (ownHotel?.status === 'AVAILABLE' && Number(ownHotel?.lowest_rate) > 0) ? 'AVAILABLE' : 'SOLD_OUT',
+      ownLowest: Number(ownHotel?.lowest_rate) || 0,
+      marketAvg,
+      recommendedBar,
+      openCount: openCompetitors.length,
+      totalComp: competitors.length,
+      alertSummary: alerts.join(' • ')
+    };
+
+    const baseHeaders = {
+      apikey: sbKey,
+      Authorization: `Bearer ${sbKey}`,
+      'Content-Type': 'application/json'
+    };
+
+    const results = await Promise.allSettled([
+      fetch(`${sbUrl}/rest/v1/rate_shop_logs`, {
+        method: 'POST',
+        headers: { ...baseHeaders, Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          checkin_date: checkinDate,
+          fetched_at: fetchedAt,
+          market_avg: marketAvg,
+          recommended_bar: recommendedBar,
+          payload: logPayload
+        })
+      }),
+      fetch(`${sbUrl}/rest/v1/rate_shop_snapshots?on_conflict=checkin_date`, {
+        method: 'POST',
+        headers: { ...baseHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          checkin_date: checkinDate,
+          checkout_date: checkoutDate,
+          fetched_at: fetchedAt,
+          market_avg: marketAvg,
+          recommended_bar: recommendedBar,
+          hotels
+        })
+      })
+    ]);
+
+    return results.every((r) => r.status === 'fulfilled' && r.value.ok);
+  }
+
   try {
     const searchUrl =
       `https://serpapi.com/search.json?engine=google_hotels` +
@@ -243,7 +322,6 @@ export default async function handler(req, res) {
 
     const props = Array.isArray(json.properties) ? json.properties : [];
 
-    // Hindari satu properti Google Hotels cocok ke dua entri berbeda
     const usedPropertyNames = new Set();
     const matchedEntries = tracked.map((item) => {
       const found = props.find((p) => {
@@ -256,7 +334,6 @@ export default async function handler(req, res) {
       return { item, found };
     });
 
-    // Tarik detail OTA untuk properti yang cocok (dibatasi 8 properti per request agar cepat & hemat kuota)
     let detailBudget = 8;
     const detailResults = await Promise.all(
       matchedEntries.map(({ found }) => {
@@ -367,10 +444,14 @@ export default async function handler(req, res) {
       };
     });
 
+    const fetchedAt = new Date().toISOString();
+    const supabaseSaved = await saveToSupabase(checkin, checkout, fetchedAt, hotels);
+
     return res.status(200).json({
       checkin,
       checkout,
-      fetched_at: new Date().toISOString(),
+      fetched_at: fetchedAt,
+      supabase_saved: supabaseSaved,
       total_properties_found: props.length,
       hotels
     });
