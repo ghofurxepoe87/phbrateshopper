@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="./favicon.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -137,7 +138,11 @@
         </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-3 sm:flex sm:items-center gap-1 text-xs">
+      <!-- View Switcher (Includes Transaction Dashboard) -->
+      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-2 sm:flex sm:items-center gap-1 text-xs">
+        <button type="button" onclick="setViewMode('DASHBOARD')" id="viewDASHBOARD" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          Transaction Dashboard
+        </button>
         <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
           Daily Rate & Parity
         </button>
@@ -187,7 +192,7 @@
     <!-- Alert Banner -->
     <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
-    <!-- Executive Rate & Parity Summary Dashboard -->
+    <!-- Executive Rate & Parity Summary Bar -->
     <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3.5">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 border-b border-slate-100 pb-3">
         <div>
@@ -218,7 +223,6 @@
 
       <!-- 4 Summary KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <!-- KPI 1: Platinum Rate & Index -->
         <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-3">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase text-amber-900">
             <span>Platinum Rate Index</span>
@@ -228,7 +232,6 @@
           <div id="summaryRateIndexSub" class="text-[11px] text-slate-600 mt-0.5">vs Market Avg: -</div>
         </div>
 
-        <!-- KPI 2: Compset Market Benchmark -->
         <div class="rounded-xl border border-sky-200 bg-sky-50/50 p-3">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase text-phb-blue">
             <span>Compset Avg & Spread</span>
@@ -238,7 +241,6 @@
           <div id="summaryLowestCompset" class="text-[11px] text-slate-600 mt-0.5">Lowest Compset: -</div>
         </div>
 
-        <!-- KPI 3: Channel Parity Health -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase text-emerald-800">
             <span>OTA Channel Parity</span>
@@ -248,7 +250,6 @@
           <div id="summaryDisparityCount" class="text-[11px] text-slate-600 mt-0.5">0 Disparity Alerts</div>
         </div>
 
-        <!-- KPI 4: Suggested BAR & Logged Transactions -->
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase text-slate-700">
             <span>BAR Strategy & Logs</span>
@@ -256,6 +257,92 @@
           </div>
           <div id="summarySuggestedBar" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
           <div id="summaryTxnCount" class="text-[11px] text-slate-600 mt-0.5">0 Logged Scans</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 0: TRANSACTION DASHBOARD (CHARTS + FULL TRANSACTION REPORTS) -->
+    <section id="panelDASHBOARD" class="hidden space-y-4">
+      <!-- Report Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Total Recorded Transactions</span>
+          <span id="dashTotalTxns" class="mono text-xl font-extrabold text-slate-900 mt-1 block">0</span>
+          <span id="dashTxnDates" class="text-[11px] text-slate-500 mt-0.5 block">Across 0 check-in dates</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Platinum Rate</span>
+          <span id="dashAvgPlatinum" class="mono text-xl font-extrabold text-amber-700 mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">From logged scan transactions</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Compset Rate</span>
+          <span id="dashAvgCompset" class="mono text-xl font-extrabold text-phb-blue mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">Market benchmark across scans</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <span class="block text-[10px] font-bold uppercase text-slate-400">Average Suggested BAR</span>
+          <span id="dashAvgBar" class="mono text-xl font-extrabold text-emerald-700 mt-1 block">IDR 0</span>
+          <span class="text-[11px] text-slate-500 mt-0.5 block">Rounded to IDR 5,000</span>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 uppercase">Transaction Rate & BAR Trend</h3>
+              <p class="text-[11px] text-slate-500">Platinum Rate vs Compset Avg vs Suggested BAR per transaction</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-phb-blue border border-sky-200">IDR</span>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="rateTrendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 uppercase">OTA Channel Average & Compset Mix</h3>
+              <p class="text-[11px] text-slate-500">Average rate across Traveloka, Tiket.com, Agoda & Booking.com</p>
+            </div>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-700 border border-emerald-200">OTA AVG</span>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="otaChannelChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Transaction Report Table -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>
+            <strong class="text-slate-800 uppercase">Transaction Report Ledger</strong>
+            <span class="text-slate-500 ml-2">Complete audit of rate shopping transactions & parity spread</span>
+          </div>
+          <button type="button" onclick="exportTransactionReportCSV()" class="min-h-[34px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1 rounded-lg transition touch-manipulation">
+            Export Transaction Report
+          </button>
+        </div>
+        <div class="table-scroll">
+          <table class="w-full min-w-[820px] text-left border-collapse">
+            <thead>
+              <tr class="bg-phb-blue text-white text-[11px] font-bold">
+                <th class="py-3 px-4">Scan Time</th>
+                <th class="py-3 px-3">Check-In</th>
+                <th class="py-3 px-3 text-right">Platinum Rate</th>
+                <th class="py-3 px-3 text-right">Compset Avg</th>
+                <th class="py-3 px-3 text-right">Spread vs Avg</th>
+                <th class="py-3 px-3 text-right">Suggested BAR</th>
+                <th class="py-3 px-3 text-center">Active Hotels</th>
+                <th class="py-3 px-4">Parity Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardReportBody" class="divide-y divide-slate-200 text-xs"></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -379,6 +466,8 @@
     let dateSnapshots = JSON.parse(localStorage.getItem('bpn_date_snapshots') || '{}');
     let historyLogs = JSON.parse(localStorage.getItem('bpn_history_logs') || '[]');
     let pollTimer = null;
+    let trendChartInstance = null;
+    let otaChartInstance = null;
 
     function formatNum(amount) {
       const n = Number(amount);
@@ -463,7 +552,7 @@
 
     function setViewMode(mode) {
       currentView = mode;
-      ['DAILY', 'GRID7', 'HISTORY'].forEach(m => {
+      ['DASHBOARD', 'DAILY', 'GRID7', 'HISTORY'].forEach(m => {
         document.getElementById('panel' + m).classList.toggle('hidden', m !== mode);
         const btn = document.getElementById('view' + m);
         btn.className = m === mode
@@ -657,8 +746,7 @@
         if (Array.isArray(data.logs) && data.logs.length > 0) {
           historyLogs = data.logs;
           localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
-          renderHistoryView();
-          renderSummaryDashboard(computeMetrics(currentHotels));
+          renderActiveView();
         }
       } catch {}
     }
@@ -666,8 +754,7 @@
     function clearLocalHistory() {
       historyLogs = [];
       localStorage.removeItem('bpn_history_logs');
-      renderHistoryView();
-      renderSummaryDashboard(computeMetrics(currentHotels));
+      renderActiveView();
     }
 
     function renderSummaryDashboard(m) {
@@ -694,12 +781,173 @@
       document.getElementById('summaryTxnCount').textContent = `${historyLogs.length} Logged Scans • ${m.activeCompetitors.length}/${m.competitors.length} Active`;
     }
 
+    function renderTransactionDashboard(m) {
+      const txns = [...historyLogs];
+      const uniqueDates = new Set(txns.map(x => x.checkin).filter(Boolean));
+      const avgPlat = txns.length > 0 ? Math.round(txns.reduce((s, x) => s + (Number(x.ownLowest) || 0), 0) / txns.length) : m.ownRate;
+      const avgComp = txns.length > 0 ? Math.round(txns.reduce((s, x) => s + (Number(x.marketAvg) || 0), 0) / txns.length) : Math.round(m.marketAvg);
+      const avgBar = txns.length > 0 ? Math.round(txns.reduce((s, x) => s + (Number(x.recommendedBar) || 0), 0) / txns.length) : m.recommendedBar;
+
+      document.getElementById('dashTotalTxns').textContent = txns.length;
+      document.getElementById('dashTxnDates').textContent = `Across ${uniqueDates.size} check-in dates`;
+      document.getElementById('dashAvgPlatinum').textContent = formatIDR(avgPlat);
+      document.getElementById('dashAvgCompset').textContent = formatIDR(avgComp);
+      document.getElementById('dashAvgBar').textContent = formatIDR(avgBar);
+
+      // Ledger Table
+      const body = document.getElementById('dashboardReportBody');
+      if (txns.length === 0) {
+        body.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">No transaction records yet. Click <strong>Check OTA Now</strong> to record a rate shopping transaction.</td></tr>`;
+      } else {
+        body.innerHTML = txns.map(row => {
+          const pRate = Number(row.ownLowest) || 0;
+          const cAvg = Number(row.marketAvg) || 0;
+          const spread = pRate > 0 && cAvg > 0 ? pRate - cAvg : 0;
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2.5 px-4 mono text-slate-600">${row.time || '-'}</td>
+              <td class="py-2.5 px-3 mono font-bold text-phb-blue">${row.checkin || '-'}</td>
+              <td class="py-2.5 px-3 text-right mono font-bold text-amber-900">${formatNum(pRate)}</td>
+              <td class="py-2.5 px-3 text-right mono font-semibold text-phb-blue">${formatNum(cAvg)}</td>
+              <td class="py-2.5 px-3 text-right mono font-bold ${spread < 0 ? 'text-emerald-600' : spread > 0 ? 'text-rose-600' : 'text-slate-600'}">${spread === 0 ? '-' : (spread > 0 ? '+' : '') + formatNum(spread)}</td>
+              <td class="py-2.5 px-3 text-right mono font-bold text-emerald-700">${formatNum(row.recommendedBar)}</td>
+              <td class="py-2.5 px-3 text-center mono">${row.openCount || 0} / ${row.totalComp || 20}</td>
+              <td class="py-2.5 px-4 text-slate-700">${row.alertSummary || 'Full Parity'}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      renderCharts(txns, m);
+    }
+
+    function renderCharts(txns, m) {
+      if (typeof Chart === 'undefined') return;
+
+      const ordered = [...txns].reverse().slice(-12);
+      const labels = ordered.length > 0
+        ? ordered.map(x => `${x.checkin || ''} (${(x.time || '').slice(0, 5)})`)
+        : [document.getElementById('checkinInput').value || 'Current'];
+
+      const platSeries = ordered.length > 0
+        ? ordered.map(x => Number(x.ownLowest) || m.ownRate || 0)
+        : [m.ownRate || 0];
+
+      const compSeries = ordered.length > 0
+        ? ordered.map(x => Number(x.marketAvg) || Math.round(m.marketAvg) || 0)
+        : [Math.round(m.marketAvg) || 0];
+
+      const barSeries = ordered.length > 0
+        ? ordered.map(x => Number(x.recommendedBar) || m.recommendedBar || 0)
+        : [m.recommendedBar || 0];
+
+      const trendCtx = document.getElementById('rateTrendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Platinum Rate',
+              data: platSeries,
+              borderColor: '#C59B27',
+              backgroundColor: 'rgba(245, 184, 28, 0.18)',
+              tension: 0.3,
+              borderWidth: 2.5
+            },
+            {
+              label: 'Compset Avg',
+              data: compSeries,
+              borderColor: '#00669E',
+              backgroundColor: 'rgba(0, 102, 158, 0.12)',
+              tension: 0.3,
+              borderWidth: 2.5
+            },
+            {
+              label: 'Suggested BAR',
+              data: barSeries,
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5, 150, 105, 0.12)',
+              borderDash: [5, 5],
+              tension: 0.3,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+          scales: {
+            y: {
+              ticks: {
+                font: { size: 10 },
+                callback: (v) => Number(v).toLocaleString('en-US')
+              }
+            },
+            x: { ticks: { font: { size: 10 }, maxRotation: 25 } }
+          }
+        }
+      });
+
+      const otaSums = { traveloka: 0, tiket: 0, agoda: 0, booking: 0, counts: 0 };
+      m.scoped.forEach(h => {
+        const o = h.ota_breakdown || {};
+        if (Number(o.traveloka) > 0 || Number(o.tiket) > 0 || Number(o.agoda) > 0 || Number(o.booking) > 0) {
+          otaSums.traveloka += Number(o.traveloka) || 0;
+          otaSums.tiket += Number(o.tiket) || 0;
+          otaSums.agoda += Number(o.agoda) || 0;
+          otaSums.booking += Number(o.booking) || 0;
+          otaSums.counts += 1;
+        }
+      });
+      const div = otaSums.counts || 1;
+      const otaAvgs = [
+        Math.round(otaSums.traveloka / div),
+        Math.round(otaSums.tiket / div),
+        Math.round(otaSums.agoda / div),
+        Math.round(otaSums.booking / div)
+      ];
+
+      const otaCtx = document.getElementById('otaChannelChart').getContext('2d');
+      if (otaChartInstance) otaChartInstance.destroy();
+      otaChartInstance = new Chart(otaCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Traveloka', 'Tiket.com', 'Agoda', 'Booking.com'],
+          datasets: [{
+            label: 'Average OTA Rate (IDR)',
+            data: otaAvgs,
+            backgroundColor: ['#00669E', '#1B85B8', '#F5B81C', '#059669'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: {
+                font: { size: 10 },
+                callback: (v) => Number(v).toLocaleString('en-US')
+              }
+            },
+            x: { ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
     function renderActiveView() {
       const checkin = document.getElementById('checkinInput').value;
       document.getElementById('activeDatePill').textContent = checkin || '-';
 
       const m = computeMetrics(currentHotels);
       renderSummaryDashboard(m);
+      renderTransactionDashboard(m);
       renderDailyTable(m);
       renderGrid7View(checkin);
       renderHistoryView();
@@ -871,6 +1119,18 @@
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `PHB_RateShop_${checkin}.csv`;
+      link.click();
+    }
+
+    function exportTransactionReportCSV() {
+      let csv = 'ScanTime,CheckIn,PlatinumRate,CompsetAvg,SuggestedBAR,ActiveHotels,TotalHotels,ParityStatus\n';
+      historyLogs.forEach(row => {
+        csv += `"${row.time || ''}","${row.checkin || ''}",${row.ownLowest || 0},${row.marketAvg || 0},${row.recommendedBar || 0},${row.openCount || 0},${row.totalComp || 0},"${row.alertSummary || 'Full Parity'}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `PHB_Transaction_Report.csv`;
       link.click();
     }
 
