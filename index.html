@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Live Rate Shopper — Platinum Hotel & Convention Hall Balikpapan</title>
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
   <link rel="shortcut icon" type="image/png" href="./favicon.png" />
@@ -29,13 +29,48 @@
   </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+    }
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #F1F5F9;
       color: #0F172A;
+      -webkit-text-size-adjust: 100%;
     }
     .mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .safe-header {
+      padding-top: calc(0.625rem + var(--sat));
+      padding-left: calc(1rem + var(--sal));
+      padding-right: calc(1rem + var(--sar));
+    }
+    .safe-main {
+      padding-left: calc(0.75rem + var(--sal));
+      padding-right: calc(0.75rem + var(--sar));
+      padding-bottom: calc(1.25rem + var(--sab));
+    }
+    @media (min-width: 640px) {
+      .safe-main {
+        padding-left: calc(1rem + var(--sal));
+        padding-right: calc(1rem + var(--sar));
+      }
+    }
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+    /* Cegah auto-zoom pada input/select di iOS Safari */
+    @media (max-width: 639px) {
+      input[type="date"], select {
+        font-size: 14px !important;
+      }
     }
     ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { background: #E2E8F0; }
@@ -45,96 +80,103 @@
 <body class="min-h-screen flex flex-col">
 
   <!-- Corporate Blue Header -->
-  <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md px-4 py-2.5">
-    <div class="max-w-[1540px] mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Brand Logo Box (logo.png) -->
-        <div class="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2.5 shadow-sm">
-          <img
-            src="./logo.png"
-            alt="Platinum Hotel & Convention Hall Balikpapan"
-            class="h-9 w-auto max-w-[140px] object-contain"
-            onerror="this.style.display='none'; document.getElementById('logoFallback').classList.remove('hidden');"
-          />
-          <div id="logoFallback" class="hidden flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
-              ✦
-            </div>
-            <div class="leading-none">
-              <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
-              <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
-              <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
+  <header class="sticky top-0 z-30 bg-phb-blue text-white shadow-md safe-header pb-2.5">
+    <div class="max-w-[1540px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
+      <div class="flex items-center justify-between md:justify-start gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Brand Logo Box (logo.png) -->
+          <div class="bg-white rounded-xl px-2.5 py-1.5 flex items-center gap-2 shadow-sm shrink-0">
+            <img
+              src="./logo.png"
+              alt="Platinum Hotel & Convention Hall Balikpapan"
+              class="h-8 sm:h-9 w-auto max-w-[125px] sm:max-w-[140px] object-contain"
+              onerror="this.style.display='none'; document.getElementById('logoFallback').classList.remove('hidden');"
+            />
+            <div id="logoFallback" class="hidden flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-phb-gold font-extrabold text-sm">
+                ✦
+              </div>
+              <div class="leading-none">
+                <span class="block text-[11px] font-extrabold tracking-wider text-slate-800">PLATINUM</span>
+                <span class="block text-[7.5px] font-semibold tracking-tight text-amber-700">HOTEL & CONVENTION HALL</span>
+                <span class="block text-[7px] font-bold tracking-widest text-slate-500">BALIKPAPAN</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Live Rate Shopper</h1>
-          <span id="modeBadge" class="flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm">
-            <i data-lucide="database" class="w-3 h-3"></i>
-            <span id="modeBadgeText">Cache Ready</span>
-          </span>
+          <div class="min-w-0">
+            <h1 class="text-sm sm:text-lg font-bold tracking-tight text-white truncate">Live Rate Shopper</h1>
+            <span id="modeBadge" class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5">
+              <i data-lucide="database" class="w-3 h-3 shrink-0"></i>
+              <span id="modeBadgeText">Cache Ready</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick="openConfigModal()" class="hidden flex items-center gap-1.5 bg-phb-amber hover:bg-amber-400 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+        <button type="button" onclick="openConfigModal()" class="hidden flex items-center justify-center gap-1.5 bg-phb-amber hover:bg-amber-400 text-slate-900 text-xs font-bold px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition">
           <i data-lucide="plug" class="w-3.5 h-3.5"></i>
           <span>API & Panduan</span>
         </button>
 
-        <button type="button" onclick="fetchLiveRates()" class="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-phb-blue text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
-          <i data-lucide="refresh-cw" id="spinIcon" class="w-3.5 h-3.5"></i>
+        <button type="button" onclick="fetchLiveRates()" class="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 active:scale-[0.99] text-phb-blue text-xs font-bold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
+          <i data-lucide="refresh-cw" id="spinIcon" class="w-3.5 h-3.5 shrink-0"></i>
           <span>Cek OTA Sekarang</span>
         </button>
 
-        <button type="button" onclick="exportCSV()" class="flex items-center gap-1.5 bg-[#1B85B8] hover:bg-[#1673A0] text-white border border-white/25 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm transition">
-          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
-          <span>Export</span>
+        <button type="button" onclick="exportCSV()" class="flex items-center justify-center gap-1.5 bg-[#1B85B8] hover:bg-[#1673A0] active:scale-[0.99] text-white border border-white/25 text-xs font-semibold px-3 py-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition touch-manipulation">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>Export CSV</span>
         </button>
       </div>
     </div>
   </header>
 
   <!-- Main Workspace -->
-  <main class="flex-1 max-w-[1540px] w-full mx-auto px-4 py-4 space-y-4">
+  <main class="flex-1 max-w-[1540px] w-full mx-auto pt-3 sm:pt-4 safe-main space-y-3 sm:space-y-4">
 
     <!-- Sub-Toolbar -->
-    <section class="flex flex-wrap items-center justify-between gap-3">
-      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-2.5 text-xs">
-        <div class="flex items-center gap-1.5 text-slate-500 font-medium">
-          <i data-lucide="calendar" class="w-3.5 h-3.5 text-phb-blue"></i>
+    <section class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 sm:gap-3">
+      <!-- Check-In Date -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center justify-between sm:justify-start gap-2 text-xs">
+        <div class="flex items-center gap-1.5 text-slate-600 font-medium">
+          <i data-lucide="calendar" class="w-4 h-4 text-phb-blue shrink-0"></i>
           <span>Check-In:</span>
         </div>
-        <input type="date" id="checkinInput" onchange="handleDateChange()" class="border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-phb-blue" />
-        <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg">-</span>
+        <div class="flex items-center gap-2">
+          <input type="date" id="checkinInput" onchange="handleDateChange()" class="min-h-[36px] border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-phb-blue" />
+          <span id="activeDatePill" class="bg-sky-50 text-phb-blue border border-sky-200 font-bold px-2.5 py-1 rounded-lg mono">-</span>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm flex items-center gap-1 text-xs">
-        <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition">
-          Daily Rate & Parity
+      <!-- View Switcher -->
+      <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-sm grid grid-cols-3 sm:flex sm:items-center gap-1 text-xs">
+        <button type="button" onclick="setViewMode('DAILY')" id="viewDAILY" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation">
+          Daily Rate
         </button>
-        <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
-          7-Day Rate Grid
+        <button type="button" onclick="setViewMode('GRID7')" id="viewGRID7" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
+          7-Day Grid
         </button>
-        <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <button type="button" onclick="setViewMode('HISTORY')" id="viewHISTORY" class="min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation">
           History Log
         </button>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl px-3.5 py-2 shadow-sm flex flex-wrap items-center gap-2.5 text-xs">
-        <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">Set:</span>
-          <select id="groupFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+      <!-- Filters & BAR Suggestion -->
+      <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-wrap items-center gap-2 text-xs">
+        <div class="flex items-center gap-1 flex-1 min-w-[140px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Set:</span>
+          <select id="groupFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
             <option value="ALL">Semua Hotel</option>
-            <option value="CORE">Core Set (Atas Sub-Total)</option>
-            <option value="EXTENDED">Extended Set (Bawah Sub-Total)</option>
+            <option value="CORE">Core Set</option>
+            <option value="EXTENDED">Extended Set</option>
           </select>
         </div>
 
-        <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">Status:</span>
-          <select id="statusFilterSelect" onchange="renderActiveView()" class="border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
+        <div class="flex items-center gap-1 flex-1 min-w-[115px] sm:flex-initial">
+          <span class="text-slate-500 font-medium shrink-0">Status:</span>
+          <select id="statusFilterSelect" onchange="renderActiveView()" class="w-full sm:w-auto min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-semibold text-slate-800 bg-white">
             <option value="ALL">Semua</option>
             <option value="AVAILABLE">Open</option>
             <option value="SOLD_OUT">Sold Out</option>
@@ -142,15 +184,15 @@
         </div>
 
         <div class="flex items-center gap-1">
-          <span class="text-slate-500 font-medium">BAR:</span>
-          <select id="offsetSelect" onchange="renderActiveView()" class="mono border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
+          <span class="text-slate-500 font-medium shrink-0">BAR:</span>
+          <select id="offsetSelect" onchange="renderActiveView()" class="mono min-h-[34px] border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 bg-white">
             <option value="-25000">-25,000</option>
             <option value="0" selected>0 (Parity)</option>
             <option value="25000">+25,000</option>
           </select>
         </div>
 
-        <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1">
+        <div class="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1.5 sm:py-1">
           <span class="text-amber-800 font-semibold">Saran BAR:</span>
           <span id="recommendedRateText" class="mono font-bold text-amber-900">Rp 0</span>
         </div>
@@ -161,9 +203,9 @@
     <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
     <!-- Header Summary Card -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center p-1.5 overflow-hidden">
+    <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5">
+      <div class="flex items-start sm:items-center gap-3">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center p-1.5 overflow-hidden shrink-0">
           <img
             src="./logo.png"
             alt="PHB"
@@ -171,29 +213,29 @@
             onerror="this.style.display='none';"
           />
         </div>
-        <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-sm font-extrabold tracking-wide text-slate-800 uppercase">PHB COMPETITOR RATE & OTA PARITY SHEET</h2>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">PHB COMPETITOR RATE & OTA PARITY SHEET</h2>
             <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded border border-slate-200">BALIKPAPAN COMPSET</span>
             <span id="soldOutLiftBadge" class="hidden px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded border border-amber-300"></span>
           </div>
-          <p class="text-xs text-slate-500 mt-1">
-            Status Platinum: <strong id="summaryOwnStatus" class="text-slate-700">-</strong>
-            <span class="mx-1.5 text-slate-300">|</span>
-            Kompetitor Open: <strong id="summaryOpenCount" class="text-emerald-600">0</strong> / <strong id="summaryTotalComp" class="text-slate-700">19</strong> Hotel
-            <span class="mx-1.5 text-slate-300">|</span>
-            Rata-Rata Pasar: <strong id="summaryMarketAvg" class="mono text-phb-blue">Rp 0</strong>
-            <span class="mx-1.5 text-slate-300">|</span>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
+            Platinum: <strong id="summaryOwnStatus" class="text-slate-700">-</strong>
+            <span class="mx-1 text-slate-300">•</span>
+            Open: <strong id="summaryOpenCount" class="text-emerald-600">0</strong>/<strong id="summaryTotalComp" class="text-slate-700">19</strong>
+            <span class="mx-1 text-slate-300">•</span>
+            Avg Pasar: <strong id="summaryMarketAvg" class="mono text-phb-blue">Rp 0</strong>
+            <span class="mx-1 text-slate-300">•</span>
             Termurah: <strong id="summaryLowestComp" class="mono text-rose-600">-</strong>
           </p>
         </div>
       </div>
 
-      <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center justify-between lg:justify-end gap-3 text-xs border-t lg:border-t-0 pt-2.5 lg:pt-0 border-slate-100">
         <div>
           <label for="autoPollSelect" class="block text-[10px] font-semibold uppercase text-slate-400">Auto-Refresh</label>
-          <select id="autoPollSelect" onchange="configureAutoPoll()" class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
-            <option value="0" selected>Manual (0 Kuota Auto)</option>
+          <select id="autoPollSelect" onchange="configureAutoPoll()" class="min-h-[34px] border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 bg-slate-50">
+            <option value="0" selected>Manual (0 Kuota)</option>
             <option value="900000">Tiap 15 Menit</option>
             <option value="1800000">Tiap 30 Menit</option>
           </select>
@@ -207,8 +249,8 @@
 
     <!-- VIEW 1: DAILY RATE & PARITY TABLE -->
     <section id="panelDAILY" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+      <div class="table-scroll">
+        <table class="w-full min-w-[920px] text-left border-collapse">
           <thead>
             <tr class="text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-200">
               <th colspan="2" class="py-2.5 px-4 bg-slate-50 text-slate-600 border-r border-slate-200">
@@ -245,12 +287,12 @@
           <strong class="text-phb-blue uppercase">7-Day Rate & Availability Matrix</strong>
           <span class="text-slate-500 ml-2">Klik tanggal untuk memuat data cache atau klik <strong>Scan 7 Hari</strong>.</span>
         </div>
-        <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition">
+        <button type="button" onclick="scanNext7Days()" id="scan7Btn" class="min-h-[36px] bg-phb-blue hover:bg-phb-darkblue text-white font-bold px-3 py-1.5 rounded-lg transition touch-manipulation">
           Scan 7 Hari (Pakai 7 Kuota)
         </button>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+      <div class="table-scroll">
+        <table class="w-full min-w-[760px] text-left border-collapse">
           <thead id="grid7Head" class="bg-phb-blue text-white text-[11px] font-bold"></thead>
           <tbody id="grid7Body" class="divide-y divide-slate-200 text-xs"></tbody>
         </table>
@@ -264,17 +306,17 @@
           <strong class="text-emerald-900 uppercase">Historical Rate Log & Trend Snapshot</strong>
           <span id="supabaseSyncStatus" class="text-slate-500 ml-2">Penyimpanan: Supabase Cloud + Local</span>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="syncHistoryFromSupabase()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="syncHistoryFromSupabase()" class="min-h-[36px] bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
             Muat Supabase (0 Kuota)
           </button>
-          <button type="button" onclick="clearLocalHistory()" class="bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg">
+          <button type="button" onclick="clearLocalHistory()" class="min-h-[36px] bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-semibold px-3 py-1.5 rounded-lg touch-manipulation">
             Reset Log Lokal
           </button>
         </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+      <div class="table-scroll">
+        <table class="w-full min-w-[780px] text-left border-collapse">
           <thead>
             <tr class="bg-phb-blue text-white text-[11px] font-bold">
               <th class="py-3 px-4">Waktu Scan (WITA)</th>
@@ -299,7 +341,7 @@
     <div class="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-2xl text-xs text-slate-700">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <h3 class="text-sm font-bold text-slate-900">Konfigurasi Endpoint</h3>
-        <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div>
         <label class="block font-bold text-slate-700 mb-1">Vercel Serverless Endpoint</label>
@@ -364,13 +406,12 @@
         document.getElementById('panel' + m).classList.toggle('hidden', m !== mode);
         const btn = document.getElementById('view' + m);
         btn.className = m === mode
-          ? 'px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition'
-          : 'px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition';
+          ? 'min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-bold bg-phb-blue text-white transition text-center touch-manipulation'
+          : 'min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition text-center touch-manipulation';
       });
       renderActiveView();
     }
 
-    // 0 Kuota SerpApi: Muat dari cache lokal atau Supabase terlebih dahulu
     async function loadCachedSnapshot(targetDate = null) {
       const checkin = targetDate || document.getElementById('checkinInput').value;
       const badge = document.getElementById('modeBadge');
@@ -378,7 +419,7 @@
 
       if (Array.isArray(dateSnapshots[checkin]) && dateSnapshots[checkin].length > 0) {
         currentHotels = dateSnapshots[checkin];
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm';
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5';
         badgeText.textContent = 'Supabase / Local Cache';
         renderActiveView();
       }
@@ -397,13 +438,13 @@
           if (checkin === document.getElementById('checkinInput').value) {
             currentHotels = data.hotels;
             document.getElementById('lastUpdateText').textContent = formatTimeWITA(data.fetched_at);
-            badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm';
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-sky-600 text-white shadow-sm mt-0.5';
             badgeText.textContent = 'Saved Snapshot';
           }
           renderActiveView();
         } else if (!dateSnapshots[checkin]) {
           currentHotels = [];
-          badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-slate-600 text-white shadow-sm';
+          badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-slate-600 text-white shadow-sm mt-0.5';
           badgeText.textContent = 'Ready (0 Kuota)';
           renderActiveView();
         }
@@ -417,7 +458,6 @@
       loadCachedSnapshot(checkin);
     }
 
-    // Memakai 1 Kuota SerpApi hanya saat tombol "Cek OTA Sekarang" diklik
     async function fetchLiveRates(targetDate = null, silent = false) {
       const checkin = targetDate || document.getElementById('checkinInput').value;
       const icon = document.getElementById('spinIcon');
@@ -428,7 +468,7 @@
       if (!silent && icon) icon.classList.add('animate-spin');
 
       if (!apiEndpoint) {
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm';
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-amber-400 text-slate-900 shadow-sm mt-0.5';
         badgeText.textContent = 'Offline Mode';
         if (!silent && icon) icon.classList.remove('animate-spin');
         renderActiveView();
@@ -455,7 +495,7 @@
           document.getElementById('lastUpdateText').textContent = formatTimeWITA(data.fetched_at);
         }
 
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm';
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-emerald-500 text-white shadow-sm mt-0.5';
         badgeText.textContent = data.supabase_saved ? 'Synced + Cloud' : 'Synced Live';
         alertBanner.classList.add('hidden');
 
@@ -463,7 +503,7 @@
         renderActiveView();
         return hotels;
       } catch (err) {
-        badge.className = 'flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-rose-500 text-white shadow-sm';
+        badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-full bg-rose-500 text-white shadow-sm mt-0.5';
         badgeText.textContent = 'API Error';
         alertBanner.className = 'rounded-2xl p-3.5 flex items-start gap-3 text-xs border bg-rose-50 border-rose-200 text-rose-800';
         alertBanner.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i><div><strong>Gagal Sinkronisasi:</strong> ${err.message}</div>`;
