@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rate Shopper — Platinum Hotel & Convention Hall Balikpapan</title>
-  <link rel="icon" type="image/png" href="./logo.png" />
+  <title>BPN Live Rate Shopper (STAAH Edition) — Platinum Hotel & Convention Hall Balikpapan</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./favicon.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -651,11 +653,11 @@
 
         let parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-500">-</span>';
         if (!isOpen) {
-          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-100 text-rose-700">SOLD OUT</span>';
+          parityBadge = '<span class="inline-block whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded bg-rose-100 text-rose-700">SOLD OUT</span>';
         } else if (otaGap >= 35000) {
-          parityBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-900">Disparity ${formatNum(otaGap)}</span>`;
+          parityBadge = `<span class="inline-block whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-900">Disparity ${formatNum(otaGap)}</span>`;
         } else {
-          parityBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">In Parity</span>';
+          parityBadge = '<span class="inline-block whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">In Parity</span>';
         }
 
         const groupTag = h.isOwn
@@ -678,8 +680,8 @@
           </td>
           <td class="py-3 px-2.5 text-center border-r border-slate-200">
             ${isOpen
-              ? '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>'
-              : '<span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">SOLD OUT</span>'
+              ? '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">AVAILABLE</span>'
+              : '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">SOLD OUT</span>'
             }
           </td>
           <td class="py-3 px-3 text-right mono border-r border-slate-200 ${isOpen ? 'text-slate-700 font-semibold' : 'text-rose-400 bg-rose-50/40'}">${isOpen ? formatNum(ota.traveloka) : 'Sold Out'}</td>
