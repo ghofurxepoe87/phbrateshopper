@@ -187,12 +187,12 @@
     <!-- Alert Banner -->
     <div id="alertBanner" class="hidden rounded-2xl p-3.5 flex items-start gap-3 text-xs border"></div>
 
-    <!-- STAAH-Style Executive Rate & Parity Summary Dashboard -->
+    <!-- Executive Rate & Parity Summary Dashboard -->
     <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3.5">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 border-b border-slate-100 pb-3">
         <div>
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">STAAH RATE & PARITY INTELLIGENCE SUMMARY</h2>
+            <h2 class="text-xs sm:text-sm font-extrabold tracking-wide text-slate-800 uppercase">RATE & PARITY INTELLIGENCE SUMMARY</h2>
             <span class="px-2 py-0.5 text-[10px] font-bold bg-sky-50 text-phb-blue rounded border border-sky-200">PLATINUM BALIKPAPAN</span>
             <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded border border-emerald-200">ZERO SOLD-OUT MODE</span>
           </div>
@@ -216,7 +216,7 @@
         </div>
       </div>
 
-      <!-- 4 STAAH KPI Cards -->
+      <!-- 4 Summary KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <!-- KPI 1: Platinum Rate & Index -->
         <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-3">
@@ -224,8 +224,8 @@
             <span>Platinum Rate Index</span>
             <i data-lucide="trending-up" class="w-4 h-4 text-amber-700"></i>
           </div>
-          <div id="staahPlatinumRate" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
-          <div id="staahRateIndexSub" class="text-[11px] text-slate-600 mt-0.5">vs Market Avg: -</div>
+          <div id="summaryPlatinumRate" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
+          <div id="summaryRateIndexSub" class="text-[11px] text-slate-600 mt-0.5">vs Market Avg: -</div>
         </div>
 
         <!-- KPI 2: Compset Market Benchmark -->
@@ -234,18 +234,18 @@
             <span>Compset Avg & Spread</span>
             <i data-lucide="bar-chart-3" class="w-4 h-4 text-phb-blue"></i>
           </div>
-          <div id="staahMarketAvg" class="mono text-lg font-extrabold text-phb-blue mt-1">IDR 0</div>
-          <div id="staahLowestCompset" class="text-[11px] text-slate-600 mt-0.5">Lowest Compset: -</div>
+          <div id="summaryMarketAvg" class="mono text-lg font-extrabold text-phb-blue mt-1">IDR 0</div>
+          <div id="summaryLowestCompset" class="text-[11px] text-slate-600 mt-0.5">Lowest Compset: -</div>
         </div>
 
-        <!-- KPI 3: Channel Parity Health (STAAH Style) -->
+        <!-- KPI 3: Channel Parity Health -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase text-emerald-800">
             <span>OTA Channel Parity</span>
             <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-700"></i>
           </div>
-          <div id="staahParityScore" class="mono text-lg font-extrabold text-emerald-700 mt-1">100% Parity</div>
-          <div id="staahDisparityCount" class="text-[11px] text-slate-600 mt-0.5">0 Disparity Alerts</div>
+          <div id="summaryParityScore" class="mono text-lg font-extrabold text-emerald-700 mt-1">100% Parity</div>
+          <div id="summaryDisparityCount" class="text-[11px] text-slate-600 mt-0.5">0 Disparity Alerts</div>
         </div>
 
         <!-- KPI 4: Suggested BAR & Logged Transactions -->
@@ -254,8 +254,8 @@
             <span>BAR Strategy & Logs</span>
             <i data-lucide="layers" class="w-4 h-4 text-slate-600"></i>
           </div>
-          <div id="staahSuggestedBar" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
-          <div id="staahTxnCount" class="text-[11px] text-slate-600 mt-0.5">0 Logged Scans</div>
+          <div id="summarySuggestedBar" class="mono text-lg font-extrabold text-slate-900 mt-1">IDR 0</div>
+          <div id="summaryTxnCount" class="text-[11px] text-slate-600 mt-0.5">0 Logged Scans</div>
         </div>
       </div>
     </section>
@@ -658,7 +658,7 @@
           historyLogs = data.logs;
           localStorage.setItem('bpn_history_logs', JSON.stringify(historyLogs));
           renderHistoryView();
-          renderStaahDashboard(computeMetrics(currentHotels));
+          renderSummaryDashboard(computeMetrics(currentHotels));
         }
       } catch {}
     }
@@ -667,31 +667,31 @@
       historyLogs = [];
       localStorage.removeItem('bpn_history_logs');
       renderHistoryView();
-      renderStaahDashboard(computeMetrics(currentHotels));
+      renderSummaryDashboard(computeMetrics(currentHotels));
     }
 
-    function renderStaahDashboard(m) {
+    function renderSummaryDashboard(m) {
       document.getElementById('recommendedRateText').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'IDR 0';
-      document.getElementById('staahPlatinumRate').textContent = m.ownRate > 0 ? formatIDR(m.ownRate) : 'IDR 0';
+      document.getElementById('summaryPlatinumRate').textContent = m.ownRate > 0 ? formatIDR(m.ownRate) : 'IDR 0';
 
       const diffFromAvg = m.ownRate > 0 && m.marketAvg > 0 ? Math.round(m.ownRate - m.marketAvg) : 0;
       const diffSign = diffFromAvg > 0 ? '+' : '';
-      document.getElementById('staahRateIndexSub').textContent = m.marketAvg > 0
+      document.getElementById('summaryRateIndexSub').textContent = m.marketAvg > 0
         ? `Index ${m.rateIndexPct}% (${diffSign}${formatNum(diffFromAvg)} vs Avg)`
         : 'Awaiting snapshot';
 
-      document.getElementById('staahMarketAvg').textContent = m.marketAvg > 0 ? formatIDR(m.marketAvg) : 'IDR 0';
-      document.getElementById('staahLowestCompset').textContent = m.lowestComp
+      document.getElementById('summaryMarketAvg').textContent = m.marketAvg > 0 ? formatIDR(m.marketAvg) : 'IDR 0';
+      document.getElementById('summaryLowestCompset').textContent = m.lowestComp
         ? `Lowest: ${formatIDR(m.lowestComp.lowest_rate)} (${m.lowestComp.name.split(' ')[0]})`
         : 'Lowest: -';
 
-      document.getElementById('staahParityScore').textContent = `${m.parityRate}% Parity`;
-      document.getElementById('staahDisparityCount').textContent = m.disparityAlerts > 0
+      document.getElementById('summaryParityScore').textContent = `${m.parityRate}% Parity`;
+      document.getElementById('summaryDisparityCount').textContent = m.disparityAlerts > 0
         ? `${m.disparityAlerts} Channel Spread Alerts`
         : 'All Channels Balanced';
 
-      document.getElementById('staahSuggestedBar').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'IDR 0';
-      document.getElementById('staahTxnCount').textContent = `${historyLogs.length} Logged Scans • ${m.activeCompetitors.length}/${m.competitors.length} Active`;
+      document.getElementById('summarySuggestedBar').textContent = m.recommendedBar > 0 ? formatIDR(m.recommendedBar) : 'IDR 0';
+      document.getElementById('summaryTxnCount').textContent = `${historyLogs.length} Logged Scans • ${m.activeCompetitors.length}/${m.competitors.length} Active`;
     }
 
     function renderActiveView() {
@@ -699,7 +699,7 @@
       document.getElementById('activeDatePill').textContent = checkin || '-';
 
       const m = computeMetrics(currentHotels);
-      renderStaahDashboard(m);
+      renderSummaryDashboard(m);
       renderDailyTable(m);
       renderGrid7View(checkin);
       renderHistoryView();
@@ -870,7 +870,7 @@
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `PHB_STAAH_RateShop_${checkin}.csv`;
+      link.download = `PHB_RateShop_${checkin}.csv`;
       link.click();
     }
 
